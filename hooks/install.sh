@@ -8,7 +8,8 @@ have() { command -v "$1" >/dev/null 2>&1; }
 
 # Paquetes (paru resuelve repo + AUR; si no, pacman)
 pkgs=(quickshell grim swappy wf-recorder wl-clipboard imagemagick brightnessctl ddcutil
-      power-profiles-daemon libnotify curl libpulse procps-ng ttf-jetbrains-mono)
+      power-profiles-daemon libnotify curl libpulse procps-ng cliphist wtype
+      ttf-jetbrains-mono noto-fonts-emoji)
 step "paquetes"
 if have paru; then paru -S --needed "${pkgs[@]}"; else sudo pacman -S --needed "${pkgs[@]}"; fi
 

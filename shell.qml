@@ -10,6 +10,7 @@ import "wallpaper"
 import "perf"
 import "osd"
 import "capture"
+import "clip"
 
 Scope {
     Variants {
@@ -49,6 +50,8 @@ Scope {
     Lock {}
     Osd {}
     Capture {}
+    ClipPicker {}
+    EmojiPicker {}
 
     IpcHandler {
         target: "launcher"

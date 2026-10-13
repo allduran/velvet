@@ -17,7 +17,8 @@ repo = [
   "brightnessctl", "ddcutil",                                        # brillo
   "power-profiles-daemon",                                           # perfiles de energía
   "libnotify", "curl", "libpulse", "procps-ng",                      # notificaciones, tiempo, audio, procesos
-  "ttf-jetbrains-mono",
+  "cliphist", "wtype",                                               # portapapeles y emojis
+  "ttf-jetbrains-mono", "noto-fonts-emoji",
 ]
 aur = []
 
@@ -63,6 +64,15 @@ shot_window   = "qs -c velvet ipc call capture window"
 rec_region    = "qs -c velvet ipc call capture record"
 rec_screen    = "qs -c velvet ipc call capture recordScreen"
 rec_sound     = "qs -c velvet ipc call capture recordSound"
+clipboard     = "qs -c velvet ipc call clipboard toggle"
+emoji         = "qs -c velvet ipc call emoji toggle"
+
+[autostart]
+# Procesos de fondo que velvet necesita (hoy los lanza execs.lua de Hyprland)
+commands = ["wl-paste --type text --watch cliphist store", "wl-paste --type image --watch cliphist store"]
+
+[assets]
+emoji = "assets/emoji.json"   # emojibase-data 15.3.2 (es), sin tonos de piel
 
 [hyprland]
 # Reglas de capa que necesita (sin animación de Hyprland: velvet anima sus paneles)
