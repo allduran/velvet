@@ -8,6 +8,7 @@ import "notifications"
 import "lock"
 import "wallpaper"
 import "perf"
+import "osd"
 
 Scope {
     Variants {
@@ -45,6 +46,7 @@ Scope {
     }
 
     Lock {}
+    Osd {}
 
     IpcHandler {
         target: "launcher"
