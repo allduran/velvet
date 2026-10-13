@@ -1,0 +1,77 @@
+# Manifiesto de velvet: lo que necesita para funcionar.
+# Hoy lo aplica hooks/install.sh; el futuro CLI leerá este archivo directamente.
+
+[shell]
+name = "velvet"
+description = "Shell estilo Persona (P3 · P4 · P5) para Hyprland con modos general / dev / art / game"
+version = "0.1.0"
+engine = "quickshell"
+config_dir = "~/.config/quickshell/velvet"
+start = "qs -c velvet -d"
+stop = "qs -c velvet kill"
+
+[packages]
+repo = [
+  "quickshell",
+  "grim", "swappy", "wf-recorder", "wl-clipboard", "imagemagick",   # capturas y grabación
+  "brightnessctl", "ddcutil",                                        # brillo
+  "power-profiles-daemon",                                           # perfiles de energía
+  "libnotify", "curl", "libpulse", "procps-ng",                      # notificaciones, tiempo, audio, procesos
+  "ttf-jetbrains-mono",
+]
+aur = []
+
+[fonts]
+families = ["Bebas Neue", "Montserrat", "JetBrains Mono"]
+# Bebas Neue y Montserrat vienen hoy del paquete 'fonts' de los dotfiles.
+# Pendiente: moverlas a velvet/assets/fonts para que el shell sea autónomo.
+files = []
+
+[system]
+modules = ["i2c-dev"]
+groups = ["i2c"]
+services_enable = ["power-profiles-daemon"]
+services_disable = ["tlp"]
+user_services_disable = ["hyprpaper"]
+
+[dirs]
+create = ["~/Pictures/Wallpapers", "~/Pictures/Screenshots", "~/Videos/Recordings"]
+state = "~/.local/state/velvet"
+wallpapers = "~/Pictures/Wallpapers"   # wallpaper-<red|blue|yellow>-<n>.<jpg|jpeg|png>
+
+[pam]
+# El lockscreen usa su propio archivo PAM (relativo a config_dir)
+config = "lock/pam/password.conf"
+
+# Comandos IPC que usan los atajos de Hyprland
+[ipc]
+launcher      = "qs -c velvet ipc call launcher toggle"
+lock          = "qs -c velvet ipc call lock lock"
+wallpaper     = "qs -c velvet ipc call wallpaper toggle"
+volume_up     = "qs -c velvet ipc call osd volumeUp"
+volume_down   = "qs -c velvet ipc call osd volumeDown"
+volume_mute   = "qs -c velvet ipc call osd mute"
+bright_up     = "qs -c velvet ipc call osd brightnessUp"
+bright_down   = "qs -c velvet ipc call osd brightnessDown"
+media_toggle  = "qs -c velvet ipc call media toggle"
+media_next    = "qs -c velvet ipc call media next"
+media_prev    = "qs -c velvet ipc call media previous"
+media_stop    = "qs -c velvet ipc call media stop"
+shot_screen   = "qs -c velvet ipc call capture screen"
+shot_region   = "qs -c velvet ipc call capture region"
+shot_window   = "qs -c velvet ipc call capture window"
+rec_region    = "qs -c velvet ipc call capture record"
+rec_screen    = "qs -c velvet ipc call capture recordScreen"
+rec_sound     = "qs -c velvet ipc call capture recordSound"
+
+[hyprland]
+# Reglas de capa que necesita (sin animación de Hyprland: velvet anima sus paneles)
+layer_rules = ['hl.layer_rule({ match = { namespace = "velvet-.*" }, no_anim = true })']
+
+[conflicts]
+shells = ["caelestia"]
+processes = ["hyprpaper"]
+
+[hooks]
+install = "hooks/install.sh"
+uninstall = "hooks/uninstall.sh"
