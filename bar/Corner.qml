@@ -412,6 +412,50 @@ PanelWindow {
                 id: clockRow
                 spacing: win.l(8, 10)
 
+                // Grabación en curso: pulsa para parar
+                Slant {
+                    visible: Recorder.recording && win.p < 0.5
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: recT.implicitWidth + 18
+                    height: 20
+                    color: Theme.accent
+                    Text {
+                        id: recT
+                        anchors.centerIn: parent
+                        text: "● REC " + Recorder.elapsed + "  ■"
+                        color: Theme.on(Theme.accent)
+                        font {
+                            family: "JetBrains Mono"
+                            pixelSize: 10
+                            weight: Font.ExtraBold
+                            letterSpacing: 1
+                        }
+                        SequentialAnimation on opacity {
+                            running: Recorder.recording
+                            loops: Animation.Infinite
+                            PauseAnimation {
+                                duration: 700
+                            }
+                            NumberAnimation {
+                                to: 0.55
+                                duration: 1
+                            }
+                            PauseAnimation {
+                                duration: 500
+                            }
+                            NumberAnimation {
+                                to: 1
+                                duration: 1
+                            }
+                        }
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: Recorder.stop()
+                    }
+                }
+
                 Slant {
                     visible: Notifs.unread > 0 && win.p < 0.5
                     anchors.verticalCenter: parent.verticalCenter
