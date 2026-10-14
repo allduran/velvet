@@ -14,6 +14,7 @@ import "capture"
 import "clip"
 import "services"
 import "settings"
+import "modes"
 
 Scope {
     // Fuentes propias de velvet (se registran para todo el shell)
@@ -73,6 +74,9 @@ Scope {
             Settings {
                 screen: s.modelData
             }
+            ModeSelect {
+                screen: s.modelData
+            }
         }
     }
 
@@ -118,6 +122,17 @@ Scope {
         target: "settings"
         function toggle(): void {
             Ui.settingsScreen = Ui.settingsScreen !== "" ? "" : (Hyprland.focusedMonitor?.name ?? "");
+        }
+    }
+
+    // qs -c velvet ipc call mode toggle  |  qs -c velvet ipc call mode set dev
+    IpcHandler {
+        target: "mode"
+        function toggle(): void {
+            Ui.modeScreen = Ui.modeScreen !== "" ? "" : (Hyprland.focusedMonitor?.name ?? "");
+        }
+        function set(m: string): void {
+            Theme.setMode(m);
         }
     }
 }

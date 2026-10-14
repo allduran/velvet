@@ -67,6 +67,7 @@ rec_sound     = "qs -c velvet ipc call capture recordSound"
 clipboard     = "qs -c velvet ipc call clipboard toggle"
 emoji         = "qs -c velvet ipc call emoji toggle"
 settings      = "qs -c velvet ipc call settings toggle"
+mode          = "qs -c velvet ipc call mode toggle"
 
 [autostart]
 # Procesos de fondo que velvet necesita (hoy los lanza execs.lua de Hyprland)

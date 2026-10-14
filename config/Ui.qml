@@ -16,4 +16,6 @@ Singleton {
     property string perfScreen: ""
     // Monitor con los ajustes abiertos ("" = cerrado)
     property string settingsScreen: ""
+    // Monitor con el selector de modo abierto ("" = cerrado)
+    property string modeScreen: ""
 }

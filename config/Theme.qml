@@ -1,9 +1,14 @@
 pragma Singleton
 import Quickshell
+import Quickshell.Io
 import QtQuick
 
 Singleton {
-    property string mode: "general"   // "general" | "dev" | "art" | "game"
+    id: root
+
+    readonly property var modes: ["general", "dev", "art", "game"]
+    // Modo activo. Se guarda en ~/.local/state/velvet/mode (también lo lee Hyprland: scheme/active.lua)
+    property string mode: "general"
 
     readonly property color canvas: "#0C0E14"
     readonly property color surface: "#141824"
@@ -31,9 +36,9 @@ Singleton {
         })
 
     readonly property var trio: palettes[mode].trio
-    readonly property color accent: trio[0]     // rojo
-    readonly property color accent2: trio[1]    // azul
-    readonly property color accent3: trio[2]    // amarillo
+    readonly property color accent: trio[0]
+    readonly property color accent2: trio[1]
+    readonly property color accent3: trio[2]
     readonly property color telemetry: palettes[mode].telemetry
 
     // Color por posición: va rotando entre los tres
@@ -45,5 +50,32 @@ Singleton {
     function on(c) {
         const k = Qt.lighter(c, 1.0);
         return (0.299 * k.r + 0.587 * k.g + 0.114 * k.b) > 0.6 ? ink : paper;
+    }
+
+    // Cambia de modo: colores, fondo y favoritas siguen solos a `mode`.
+    // Hyprland relee el archivo al recargar (bordes, sombra, grupos).
+    function setMode(m) {
+        if (!modes.includes(m) || m === mode)
+            return;
+        mode = m;
+        modeFile.setText(m + "\n");
+        hyprReload.restart();
+    }
+
+    FileView {
+        id: modeFile
+        path: Quickshell.env("HOME") + "/.local/state/velvet/mode"
+        printErrors: false
+        onLoaded: {
+            const m = text().trim();
+            if (root.modes.includes(m))
+                root.mode = m;
+        }
+    }
+
+    Timer {
+        id: hyprReload
+        interval: 300
+        onTriggered: Quickshell.execDetached(["hyprctl", "reload"])
     }
 }

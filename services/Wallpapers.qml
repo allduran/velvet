@@ -12,7 +12,12 @@ Singleton {
     readonly property string dir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
 
     // Color permitido por modo ("" = todos). Sale de trio[0] de cada paleta en Theme.
-    readonly property var modeColor: ({ general: "", dev: "blue", art: "yellow", game: "red" })
+    readonly property var modeColor: ({
+            general: "",
+            dev: "blue",
+            art: "yellow",
+            game: "red"
+        })
     readonly property var colorOrder: ["red", "blue", "yellow"]
 
     property var all: []   // [{ path, name, color, num }]
@@ -23,11 +28,21 @@ Singleton {
         return c ? all.filter(w => w.color === c) : all;
     }
 
+    // Fondo efectivo de cualquier modo (el guardado si es válido, si no el primero permitido)
+    function currentFor(m) {
+        const saved = store[m];
+        const allowed = forMode(m, "all");
+        if (allowed.some(w => w.path === saved))
+            return saved;
+        return allowed.length ? allowed[0].path : "";
+    }
+
     // Fondo efectivo del modo actual: el guardado si es válido, si no el primero permitido
     readonly property string current: {
         const saved = store[Theme.mode];
         const allowed = forMode(Theme.mode, "all");
-        if (allowed.some(w => w.path === saved)) return saved;
+        if (allowed.some(w => w.path === saved))
+            return saved;
         return allowed.length ? allowed[0].path : "";
     }
 
@@ -36,7 +51,8 @@ Singleton {
     }
 
     function refresh() {
-        if (!ls.running) ls.running = true;
+        if (!ls.running)
+            ls.running = true;
     }
 
     Process {
@@ -49,7 +65,8 @@ Singleton {
                 for (const raw of text.split("\n")) {
                     const name = raw.trim();
                     const m = name.match(re);
-                    if (!m) continue;
+                    if (!m)
+                        continue;
                     out.push({
                         path: root.dir + "/" + name,
                         name: name.replace(/\.[^.]+$/, ""),
@@ -69,7 +86,8 @@ Singleton {
         path: Quickshell.env("HOME") + "/.local/state/velvet/wallpapers.json"
         onAdapterUpdated: writeAdapter()
         onLoadFailed: error => {
-            if (error === FileViewError.FileNotFound) writeAdapter();
+            if (error === FileViewError.FileNotFound)
+                writeAdapter();
         }
 
         JsonAdapter {
