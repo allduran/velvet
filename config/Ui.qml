@@ -4,6 +4,7 @@ import QtQuick
 
 Singleton {
     signal openCorner(string screenName)
+    signal openCornerTab(string screenName, int tab)
 
     // Monitor donde está abierto el launcher ("" = cerrado)
     property string launcherScreen: ""

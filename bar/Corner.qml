@@ -132,6 +132,14 @@ PanelWindow {
             win.open = true;
             Qt.callLater(() => grab.active = true);
         }
+        function onOpenCornerTab(name, t) {
+            if (name !== win.screen?.name)
+                return;
+            win.pinned = true;
+            win.open = true;
+            win.tab = t;
+            Qt.callLater(() => grab.active = true);
+        }
     }
 
     // ═══════════ Panel ═══════════

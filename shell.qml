@@ -11,6 +11,7 @@ import "perf"
 import "osd"
 import "capture"
 import "clip"
+import "services"
 
 Scope {
     Variants {
@@ -65,6 +66,22 @@ Scope {
         target: "wallpaper"
         function toggle(): void {
             Ui.wallpaperScreen = Ui.wallpaperScreen !== "" ? "" : (Hyprland.focusedMonitor?.name ?? "");
+        }
+    }
+
+    // qs -c velvet ipc call session open → menú de pausa en ENERGÍA
+    IpcHandler {
+        target: "session"
+        function open(): void {
+            Ui.openCornerTab(Hyprland.focusedMonitor?.name ?? "", 5);
+        }
+    }
+
+    // qs -c velvet ipc call notifs clear
+    IpcHandler {
+        target: "notifs"
+        function clear(): void {
+            Notifs.clearAll();
         }
     }
 }
