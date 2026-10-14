@@ -26,7 +26,7 @@ aur = []
 families = ["Bebas Neue", "Montserrat", "JetBrains Mono"]
 # Bebas Neue y Montserrat van dentro de velvet (FontLoader en shell.qml).
 # JetBrains Mono viene del paquete ttf-jetbrains-mono.
-files = ["assets/fonts/BebasNeue-Regular.ttf", "assets/fonts/Montserrat.ttf"]
+files = ["assets/fonts/BebasNeue-Regular.ttf", "assets/fonts/Montserrat-*.ttf"]
 
 [system]
 modules = ["i2c-dev"]

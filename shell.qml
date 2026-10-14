@@ -20,7 +20,22 @@ Scope {
         source: Qt.resolvedUrl("assets/fonts/BebasNeue-Regular.ttf")
     }
     FontLoader {
-        source: Qt.resolvedUrl("assets/fonts/Montserrat.ttf")
+        source: Qt.resolvedUrl("assets/fonts/Montserrat-Regular.ttf")
+    }
+    FontLoader {
+        source: Qt.resolvedUrl("assets/fonts/Montserrat-Medium.ttf")
+    }
+    FontLoader {
+        source: Qt.resolvedUrl("assets/fonts/Montserrat-SemiBold.ttf")
+    }
+    FontLoader {
+        source: Qt.resolvedUrl("assets/fonts/Montserrat-Bold.ttf")
+    }
+    FontLoader {
+        source: Qt.resolvedUrl("assets/fonts/Montserrat-ExtraBold.ttf")
+    }
+    FontLoader {
+        source: Qt.resolvedUrl("assets/fonts/Montserrat-Black.ttf")
     }
 
     Variants {
