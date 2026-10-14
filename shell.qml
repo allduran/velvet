@@ -61,9 +61,11 @@ Scope {
             }
             Launcher {
                 screen: s.modelData
+                screenName: s.modelData.name
             }
             Popups {
                 screen: s.modelData
+                screenName: s.modelData.name
             }
             Banner {
                 screen: s.modelData
@@ -76,9 +78,11 @@ Scope {
             }
             Settings {
                 screen: s.modelData
+                screenName: s.modelData.name
             }
             ModeSelect {
                 screen: s.modelData
+                screenName: s.modelData.name
             }
         }
     }
