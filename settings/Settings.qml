@@ -14,7 +14,8 @@ import "../clip"
 // qs -c velvet ipc call settings toggle
 PanelWindow {
     id: win
-    visible: Ui.settingsScreen !== "" && Ui.settingsScreen === (screen?.name ?? "")
+    property string screenName: ""
+    visible: Ui.settingsScreen !== "" && Ui.settingsScreen === screenName
     anchors {
         top: true
         bottom: true

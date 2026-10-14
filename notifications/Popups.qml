@@ -8,8 +8,9 @@ import "../services"
 
 PanelWindow {
     id: win
-    readonly property bool focused: Hyprland.focusedMonitor?.name === screen?.name
-    visible: focused && Notifs.popups.length > 0 && Ui.cornerScreen !== screen?.name
+    property string screenName: ""
+    readonly property bool focused: Hyprland.focusedMonitor?.name === screenName
+    visible: focused && Notifs.popups.length > 0 && Ui.cornerScreen !== screenName
 
     anchors {
         top: true

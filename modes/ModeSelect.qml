@@ -9,7 +9,8 @@ import "../services"
 // qs -c velvet ipc call mode toggle
 PanelWindow {
     id: win
-    visible: Ui.modeScreen !== "" && Ui.modeScreen === (screen?.name ?? "")
+    property string screenName: ""
+    visible: Ui.modeScreen !== "" && Ui.modeScreen === screenName
     anchors {
         top: true
         bottom: true

@@ -10,7 +10,8 @@ import "../components"
 
 PanelWindow {
     id: win
-    visible: Ui.launcherScreen !== "" && Ui.launcherScreen === (screen?.name ?? "")
+    property string screenName: ""
+    visible: Ui.launcherScreen !== "" && Ui.launcherScreen === screenName
     anchors {
         top: true
         bottom: true
