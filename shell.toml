@@ -4,7 +4,7 @@
 [shell]
 name = "velvet"
 description = "Shell estilo Persona (P3 · P4 · P5) para Hyprland con modos general / dev / art / game"
-version = "0.1.0"
+version = "0.2.0"
 engine = "quickshell"
 config_dir = "~/.config/quickshell/velvet"
 start = "qs -c velvet -d"
@@ -15,11 +15,11 @@ repo = [
   "quickshell",
   "grim", "swappy", "wf-recorder", "wl-clipboard", "imagemagick",   # capturas y grabación
   "brightnessctl", "ddcutil",                                        # brillo
-  "power-profiles-daemon",                                           # perfiles de energía
-  "libnotify", "curl", "libpulse", "procps-ng",                      # notificaciones, tiempo, audio, procesos
+  "power-profiles-daemon", "gamemode",                               # energía por modo
+  "hypridle", "hyprsunset",                                          # bloqueo y luz nocturna por modo
+  "libnotify", "curl", "libpulse", "procps-ng", "bash",              # notificaciones, tiempo, audio, procesos, scripts
   "cliphist", "wtype",                                               # portapapeles y emojis
   "ttf-jetbrains-mono", "noto-fonts-emoji",
-  "hypridle", "hyprsunset", "gamemode"
 ]
 aur = []
 
@@ -33,6 +33,7 @@ files = ["assets/fonts/BebasNeue-Regular.ttf", "assets/fonts/Montserrat-*.ttf"]
 modules = ["i2c-dev"]
 groups = ["i2c"]
 services_enable = ["power-profiles-daemon"]
+user_services_enable = ["hypridle"]
 services_disable = ["tlp"]
 user_services_disable = ["hyprpaper"]
 
@@ -40,6 +41,20 @@ user_services_disable = ["hyprpaper"]
 create = ["~/Pictures/Wallpapers", "~/Pictures/Screenshots", "~/Videos/Recordings"]
 state = "~/.local/state/velvet"
 wallpapers = "~/Pictures/Wallpapers"   # wallpaper-<red|blue|yellow>-<n>.<jpg|jpeg|png>
+
+# Lo que velvet escribe en state (no va a dotfiles)
+[state]
+mode = "mode"                      # modo activo: general | dev | art | game (también lo lee Hyprland)
+settings = "settings.json"         # Ajustes (globales + por modo)
+launcher = "launcher.json"         # rango de uso del lanzador
+foot = "foot-colors.ini"           # cursor + selección del modo (lo genera scripts/term.sh)
+fastfetch = "fastfetch.jsonc"      # fastfetch con el trío del modo (scripts/term.sh)
+
+[modes]
+list = ["general", "dev", "art", "game"]
+palettes = "config/Theme.qml"                 # trío de cada modo en QML
+apply = "services/ModeApply.qml"              # energía, hypridle, DND, luz nocturna, gamemode, apps, terminal
+scripts = ["scripts/idle.sh", "scripts/term.sh"]
 
 [pam]
 # El lockscreen usa su propio archivo PAM (relativo a config_dir)
@@ -50,6 +65,11 @@ config = "lock/pam/password.conf"
 launcher      = "qs -c velvet ipc call launcher toggle"
 lock          = "qs -c velvet ipc call lock lock"
 wallpaper     = "qs -c velvet ipc call wallpaper toggle"
+settings      = "qs -c velvet ipc call settings toggle"
+mode          = "qs -c velvet ipc call mode toggle"
+mode_set      = "qs -c velvet ipc call mode set <general|dev|art|game>"
+session       = "qs -c velvet ipc call session open"
+notifs_clear  = "qs -c velvet ipc call notifs clear"
 volume_up     = "qs -c velvet ipc call osd volumeUp"
 volume_down   = "qs -c velvet ipc call osd volumeDown"
 volume_mute   = "qs -c velvet ipc call osd mute"
@@ -67,8 +87,6 @@ rec_screen    = "qs -c velvet ipc call capture recordScreen"
 rec_sound     = "qs -c velvet ipc call capture recordSound"
 clipboard     = "qs -c velvet ipc call clipboard toggle"
 emoji         = "qs -c velvet ipc call emoji toggle"
-settings      = "qs -c velvet ipc call settings toggle"
-mode          = "qs -c velvet ipc call mode toggle"
 
 [autostart]
 # Procesos de fondo que velvet necesita (hoy los lanza execs.lua de Hyprland)
@@ -80,6 +98,16 @@ emoji = "assets/emoji.json"   # emojibase-data 15.3.2 (es), sin tonos de piel
 [hyprland]
 # Reglas de capa que necesita (sin animación de Hyprland: velvet anima sus paneles)
 layer_rules = ['hl.layer_rule({ match = { namespace = "velvet-.*" }, no_anim = true })']
+# Archivos de hypr que dependen de velvet (viven en el paquete stow "hypr")
+scheme = ["scheme/modes.lua", "scheme/active.lua"]   # colores, huecos, animaciones, blur y VRR por modo
+generated = ["hypridle.conf"]                        # lo reescribe scripts/idle.sh
+extra = ["hyprsunset.conf"]                          # perfiles día/noche de la luz nocturna
+keybinds = { launcher = "SUPER", settings = "SUPER + I", mode = "SUPER + TAB" }
+
+# Cambios que velvet necesita en otras configs de dotfiles
+[integrations]
+foot = "include=~/.local/state/velvet/foot-colors.ini  (primera línea de foot.ini)"
+fish = "fish_greeting: fastfetch -c ~/.local/state/velvet/fastfetch.jsonc si existe"
 
 [conflicts]
 shells = ["caelestia"]
