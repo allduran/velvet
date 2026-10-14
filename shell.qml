@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import QtQuick
 import "config"
 import "bar"
 import "launcher"
@@ -14,6 +15,14 @@ import "clip"
 import "services"
 
 Scope {
+    // Fuentes propias de velvet (se registran para todo el shell)
+    FontLoader {
+        source: Qt.resolvedUrl("assets/fonts/BebasNeue-Regular.ttf")
+    }
+    FontLoader {
+        source: Qt.resolvedUrl("assets/fonts/Montserrat.ttf")
+    }
+
     Variants {
         model: Quickshell.screens
 
