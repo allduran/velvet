@@ -155,6 +155,7 @@ Scope {
 
                 property real p: root.osdShown && perScreen.here ? 1 : 0
                 Behavior on p {
+                    enabled: Config.animations
                     NumberAnimation {
                         duration: 200
                         easing.type: Easing.OutCubic
@@ -376,6 +377,7 @@ Scope {
 
                 property real p: root.trackShown && perScreen.here && root.player !== null ? 1 : 0
                 Behavior on p {
+                    enabled: Config.animations
                     NumberAnimation {
                         duration: 260
                         easing.type: Easing.OutCubic

@@ -44,6 +44,7 @@ PanelWindow {
     readonly property var codes: ["SYS.CORE", "NET.WLAN0", "BT.HCI0", "TRAY.ITEMS", "NOTIF.LOG", "PWR.STATE"]
 
     Behavior on p {
+        enabled: Config.animations
         NumberAnimation {
             duration: win.open ? 220 : 160
             easing.type: Easing.OutCubic

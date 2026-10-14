@@ -178,11 +178,15 @@ PanelWindow {
         id: focusT
         interval: 30
         onTriggered: {
-            popAnim.restart();
-            for (let i = 0; i < pinRep.count; i++)
-                pinRep.itemAt(i).enter();
-            for (let i = 0; i < coreRep.count; i++)
-                coreRep.itemAt(i).enter();
+            if (Config.animations) {
+                popAnim.restart();
+                for (let i = 0; i < pinRep.count; i++)
+                    pinRep.itemAt(i).enter();
+                for (let i = 0; i < coreRep.count; i++)
+                    coreRep.itemAt(i).enter();
+            } else {
+                content.opacity = 1;
+            }
             grab.active = true;
             input.forceActiveFocus();
         }

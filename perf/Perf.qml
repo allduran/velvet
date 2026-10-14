@@ -43,6 +43,7 @@ PanelWindow {
     property bool open: false
     property bool pinned: false
     Behavior on p {
+        enabled: Config.animations
         NumberAnimation {
             duration: win.open ? 240 : 180
             easing.type: Easing.OutCubic

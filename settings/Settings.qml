@@ -376,7 +376,7 @@ PanelWindow {
                 id: screenBox
                 anchors.fill: parent
                 radius: 22
-                color: Qt.alpha(Theme.ink, Math.max(0.6, Config.panelOpacity))
+                color: Qt.alpha(Theme.ink, 0.97)
                 border.width: 3
                 border.color: Theme.accent3
                 clip: true
@@ -566,36 +566,6 @@ PanelWindow {
                                         const s = win.screen.name;
                                         win.close();
                                         Ui.wallpaperScreen = s;
-                                    }
-                                }
-                            }
-                        }
-                        SetRow {
-                            label: "OPACIDAD DE PANELES"
-                            desc: "BARRA · ESQUINA · POPUPS"
-                            Row {
-                                spacing: 14
-                                SegBar {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    count: 10
-                                    segW: 20
-                                    segH: 28
-                                    gap: 4
-                                    interactive: true
-                                    value: Config.panelOpacity
-                                    fill: Theme.paper
-                                    onMoved: v => Config.panelOpacity = Math.max(0.1, Math.ceil(v * 10) / 10)
-                                }
-                                Text {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: 60
-                                    horizontalAlignment: Text.AlignRight
-                                    text: Math.round(Config.panelOpacity * 100) + "%"
-                                    color: Theme.paper
-                                    font {
-                                        family: "Bebas Neue"
-                                        pixelSize: 28
-                                        letterSpacing: 1
                                     }
                                 }
                             }

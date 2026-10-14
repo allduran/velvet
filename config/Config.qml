@@ -10,7 +10,6 @@ Singleton {
     readonly property string dir: Quickshell.env("HOME") + "/.local/state/velvet"
 
     // Apariencia
-    property alias panelOpacity: store.panelOpacity     // 0.1–1 (paso 3: lo leerán los paneles)
     property alias animations: store.animations          // paso 3
     property alias adaptiveText: store.adaptiveText      // Contrast.qml
     // Lanzador
@@ -44,7 +43,6 @@ Singleton {
 
         JsonAdapter {
             id: store
-            property real panelOpacity: 0.95
             property bool animations: true
             property bool adaptiveText: true
             property var pins: ({

@@ -20,8 +20,12 @@ PanelWindow {
     color: "transparent"
     mask: Region {}                          // no bloquea clics
 
-    onVisibleChanged: if (visible)
-        sweep.restart()
+    onVisibleChanged: if (visible) {
+        if (Config.animations)
+            sweep.restart();
+        else
+            tr.x = 0;
+    }
 
     Item {
         id: band
