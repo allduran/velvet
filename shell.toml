@@ -96,10 +96,7 @@ commands = ["wl-paste --type text --watch cliphist store", "wl-paste --type imag
 emoji = "assets/emoji.json"   # emojibase-data 15.3.2 (es), sin tonos de piel
 
 [hyprland]
-# Reglas de capa que necesita (sin animación de Hyprland: velvet anima sus paneles)
-layer_rules = ['hl.layer_rule({ match = { namespace = "velvet-.*" }, no_anim = true })']
-# Archivos de hypr que dependen de velvet (viven en el paquete stow "hypr")
-scheme = ["scheme/modes.lua", "scheme/active.lua"]   # colores, huecos, animaciones, blur y VRR por modo
+config = "hypr/shell.lua"   # duran la enlaza en ~/.config/hypr/shell.lua (colores por modo, huecos, efectos, VRR, layer rules)
 generated = ["hypridle.conf"]                        # lo reescribe scripts/idle.sh
 extra = ["hyprsunset.conf"]                          # perfiles día/noche de la luz nocturna
 keybinds = { launcher = "SUPER", settings = "SUPER + I", mode = "SUPER + TAB" }
