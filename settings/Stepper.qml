@@ -9,6 +9,7 @@ Row {
     property int from: 1
     property int to: 60
     property string unit: ""
+    property string zeroLabel: ""      // texto cuando vale 0 (p. ej. "NUNCA")
     signal stepped(int value)
     spacing: 10
 
@@ -26,7 +27,7 @@ Row {
         anchors.verticalCenter: parent.verticalCenter
         width: 96
         horizontalAlignment: Text.AlignHCenter
-        text: root.value + " " + root.unit
+        text: root.value === 0 && root.zeroLabel ? root.zeroLabel : root.value + " " + root.unit
         color: Theme.paper
         font {
             family: "Bebas Neue"

@@ -19,6 +19,7 @@ repo = [
   "libnotify", "curl", "libpulse", "procps-ng",                      # notificaciones, tiempo, audio, procesos
   "cliphist", "wtype",                                               # portapapeles y emojis
   "ttf-jetbrains-mono", "noto-fonts-emoji",
+  "hypridle", "hyprsunset", "gamemode"
 ]
 aur = []
 

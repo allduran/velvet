@@ -38,13 +38,52 @@ PanelWindow {
         },
         {
             name: "ENERGÍA",
-            sub: "PERFIL · BLOQUEO · PANTALLA"
+            sub: "PERFIL · BLOQUEO · PANTALLA",
+            perMode: true
         },
         {
             name: "NOTIFICACIONES",
-            sub: "NO MOLESTAR · DURACIÓN"
+            sub: "NO MOLESTAR · DURACIÓN",
+            perMode: true
+        },
+        {
+            name: "MODO",
+            sub: "APPS AL ENTRAR",
+            perMode: true
         }
     ]
+    // Subtítulo de la sección; las que van por modo dicen de cuál
+    function secSub(i) {
+        const s = sections[i];
+        return s.sub + (s.perMode ? " · MODO " + Theme.mode.toUpperCase() : "");
+    }
+
+    // ── Modo: apps al entrar ──
+    property int appSlot: -1
+    function setApp(i, entry) {
+        const arr = JSON.parse(JSON.stringify(Config.apps));
+        const ws = arr[i]?.ws ?? (i + 1);
+        arr[i] = {
+            id: entry.id,
+            ws: ws
+        };
+        Config.setForMode("apps", arr.filter(a => a));
+        appSlot = -1;
+        say("ENTRADA " + (i + 1) + " → " + entry.name.toUpperCase());
+    }
+    function setAppWs(i, ws) {
+        const arr = JSON.parse(JSON.stringify(Config.apps));
+        if (!arr[i])
+            return;
+        arr[i].ws = ws;
+        Config.setForMode("apps", arr);
+    }
+    function removeApp(i) {
+        const arr = JSON.parse(JSON.stringify(Config.apps));
+        arr.splice(i, 1);
+        Config.setForMode("apps", arr);
+        appSlot = -1;
+    }
     property int sec: 0
     readonly property color tone: Theme.at(sec)
 
@@ -63,7 +102,7 @@ PanelWindow {
         const q = pickQuery.trim().toLowerCase();
         if (!q)
             return [];
-        return DesktopEntries.applications.values.filter(e => !e.noDisplay && e.name.toLowerCase().includes(q)).slice(0, 5);
+        return DesktopEntries.applications.values.filter(e => !e.noDisplay && (e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q) || (e.genericName || "").toLowerCase().includes(q) || (e.keywords || []).some(k => k.toLowerCase().includes(q)))).slice(0, 5);
     }
     function setPin(i, entry) {
         const p = JSON.parse(JSON.stringify(Config.pins));
@@ -118,6 +157,7 @@ PanelWindow {
         now = new Date();
         favMode = Theme.mode;
         pickSlot = -1;
+        appSlot = -1;
         flash = "";
         focusT.restart();
     }
@@ -147,11 +187,12 @@ PanelWindow {
                 win.sec = Math.max(0, win.sec - 1);
             else if (e.key === Qt.Key_Down)
                 win.sec = Math.min(win.sections.length - 1, win.sec + 1);
-            else if (e.key >= Qt.Key_1 && e.key <= Qt.Key_4)
+            else if (e.key >= Qt.Key_1 && e.key <= Qt.Key_5)
                 win.sec = e.key - Qt.Key_1;
             else
                 return;
             win.pickSlot = -1;
+            win.appSlot = -1;
             e.accepted = true;
         }
     }
@@ -285,8 +326,8 @@ PanelWindow {
             // Menú de secciones
             Column {
                 x: 44
-                y: 236
-                spacing: 20
+                y: 214
+                spacing: 8
                 Repeater {
                     model: win.sections
                     MenuEntry {
@@ -295,12 +336,13 @@ PanelWindow {
                         x: active ? 26 : index * 6
                         code: "0" + (index + 1)
                         name: modelData.name
-                        sub: modelData.sub
+                        sub: win.secSub(index)
                         active: win.sec === index
                         tone: Theme.at(index)
                         onClicked: {
                             win.sec = index;
                             win.pickSlot = -1;
+                            win.appSlot = -1;
                         }
                     }
                 }
@@ -496,7 +538,7 @@ PanelWindow {
                     }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: win.sections[win.sec].sub
+                        text: win.secSub(win.sec)
                         color: Theme.telemetry
                         font {
                             family: "JetBrains Mono"
@@ -606,6 +648,28 @@ PanelWindow {
                                 ]
                                 value: Config.adaptiveText
                                 onPicked: v => Config.adaptiveText = v
+                            }
+                        }
+                        SetRow {
+                            label: "LUZ NOCTURNA"
+                            desc: "HYPRSUNSET · POR MODO (" + Theme.mode.toUpperCase() + ")"
+                            Choice {
+                                tone: win.tone
+                                options: [
+                                    {
+                                        label: "SÍ",
+                                        value: true
+                                    },
+                                    {
+                                        label: "NO",
+                                        value: false
+                                    }
+                                ]
+                                value: Config.nightLight
+                                onPicked: v => {
+                                    Config.setForMode("night", v);
+                                    ModeApply.applyNight();
+                                }
                             }
                         }
                     }
@@ -808,20 +872,23 @@ PanelWindow {
                                 options: [
                                     {
                                         label: "AHORRO",
-                                        value: PowerProfile.PowerSaver
+                                        value: "power-saver"
                                     },
                                     {
                                         label: "EQUILIBRADO",
-                                        value: PowerProfile.Balanced
+                                        value: "balanced"
                                     }
                                 ].concat(PowerProfiles.hasPerformanceProfile ? [
                                     {
                                         label: "RENDIMIENTO",
-                                        value: PowerProfile.Performance
+                                        value: "performance"
                                     }
                                 ] : [])
-                                value: PowerProfiles.profile
-                                onPicked: v => PowerProfiles.profile = v
+                                value: Config.profile
+                                onPicked: v => {
+                                    Config.setForMode("profile", v);
+                                    ModeApply.applyProfile();
+                                }
                             }
                         }
                         SetRow {
@@ -829,11 +896,12 @@ PanelWindow {
                             desc: "HYPRIDLE · TIEMPO SIN USO"
                             Stepper {
                                 value: Config.lockMin
-                                from: 1
+                                from: 0
                                 to: 60
                                 unit: "MIN"
+                                zeroLabel: "NUNCA"
                                 onStepped: v => {
-                                    Config.lockMin = v;
+                                    Config.setForMode("lock", v);
                                     idleT.restart();
                                 }
                             }
@@ -843,11 +911,12 @@ PanelWindow {
                             desc: "HYPRIDLE · DPMS"
                             Stepper {
                                 value: Config.dpmsMin
-                                from: 1
+                                from: 0
                                 to: 120
                                 unit: "MIN"
+                                zeroLabel: "NUNCA"
                                 onStepped: v => {
-                                    Config.dpmsMin = v;
+                                    Config.setForMode("dpms", v);
                                     idleT.restart();
                                 }
                             }
@@ -873,8 +942,30 @@ PanelWindow {
                                 ]
                                 value: Config.sleepMin
                                 onPicked: v => {
-                                    Config.sleepMin = v;
+                                    Config.setForMode("sleep", v);
                                     idleT.restart();
+                                }
+                            }
+                        }
+                        SetRow {
+                            label: "GAMEMODE"
+                            desc: "FERAL GAMEMODE · CPU Y GPU A TOPE"
+                            Choice {
+                                tone: win.tone
+                                options: [
+                                    {
+                                        label: "SÍ",
+                                        value: true
+                                    },
+                                    {
+                                        label: "NO",
+                                        value: false
+                                    }
+                                ]
+                                value: Config.gamemode
+                                onPicked: v => {
+                                    Config.setForMode("gamemode", v);
+                                    ModeApply.applyGamemode();
                                 }
                             }
                         }
@@ -900,7 +991,7 @@ PanelWindow {
                                     }
                                 ]
                                 value: Config.dnd
-                                onPicked: v => Config.dnd = v
+                                onPicked: v => Config.setForMode("dnd", v)
                             }
                         }
                         SetRow {
@@ -927,6 +1018,186 @@ PanelWindow {
                                 onClicked: {
                                     Notifs.clearAll();
                                     win.say("AVISOS BORRADOS");
+                                }
+                            }
+                        }
+                    }
+
+                    // 05 MODO: apps al entrar
+                    Column {
+                        visible: win.sec === 4
+                        width: parent.width
+                        spacing: 18
+                        Text {
+                            text: "SE ABREN AL CAMBIAR A ESTE MODO (SI NO ESTÁN YA ABIERTAS) // MÁX. 4"
+                            color: Theme.telemetry
+                            topPadding: 6
+                            font {
+                                family: "JetBrains Mono"
+                                pixelSize: 10
+                                bold: true
+                                letterSpacing: 1.5
+                            }
+                        }
+                        Repeater {
+                            model: Math.min(4, Config.apps.length + 1)
+                            Item {
+                                id: arow
+                                required property int index
+                                readonly property var app: Config.apps[index] ?? null
+                                readonly property var entry: app ? win.findApp(app.id) : null
+                                readonly property bool on: win.appSlot === index
+                                readonly property color c: Theme.at(index)
+                                width: parent.width
+                                height: 64
+
+                                Item {
+                                    width: 420
+                                    height: 58
+                                    rotation: [-1.5, 1, -1, 1.5][arow.index]
+                                    Slant {
+                                        x: 6
+                                        y: 6
+                                        width: parent.width
+                                        height: parent.height
+                                        color: arow.c
+                                    }
+                                    Slant {
+                                        anchors.fill: parent
+                                        color: arow.on ? Theme.paper : Qt.alpha(Theme.ink, 0.95)
+                                        borderWidth: 2
+                                        borderColor: arow.on ? Theme.paper : Qt.alpha(Theme.paper, arow.app ? 0.7 : 0.3)
+                                        Row {
+                                            x: 18
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            spacing: 12
+                                            IconImage {
+                                                visible: arow.entry !== null
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                implicitSize: 24
+                                                source: Quickshell.iconPath(arow.entry?.icon ?? "", "application-x-executable")
+                                            }
+                                            Column {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                spacing: 2
+                                                Text {
+                                                    width: 330
+                                                    elide: Text.ElideRight
+                                                    text: arow.app ? (arow.entry?.name ?? arow.app.id).toUpperCase() : "+ AÑADIR APP"
+                                                    color: arow.on ? Theme.ink : Theme.paper
+                                                    opacity: arow.app ? 1 : 0.6
+                                                    font {
+                                                        family: "Bebas Neue"
+                                                        pixelSize: 26
+                                                        letterSpacing: 2
+                                                    }
+                                                }
+                                                Text {
+                                                    text: arow.on ? "ESCRIBE PARA BUSCAR APP" : "CLIC PARA CAMBIAR"
+                                                    color: arow.on ? Theme.ink : Theme.paper
+                                                    opacity: 0.7
+                                                    font {
+                                                        family: "JetBrains Mono"
+                                                        pixelSize: 9
+                                                        bold: true
+                                                        letterSpacing: 1.5
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            win.pickSlot = -1;
+                                            win.appSlot = arow.on ? -1 : arow.index;
+                                            if (win.appSlot >= 0) {
+                                                appBox.text = "";
+                                                appBox.input.forceActiveFocus();
+                                            } else {
+                                                keys.forceActiveFocus();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Row {
+                                    visible: arow.app !== null
+                                    anchors.right: parent.right
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    spacing: 14
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: "ESPACIO"
+                                        color: Theme.telemetry
+                                        font {
+                                            family: "JetBrains Mono"
+                                            pixelSize: 10
+                                            bold: true
+                                            letterSpacing: 1.5
+                                        }
+                                    }
+                                    Stepper {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        value: arow.app?.ws ?? 1
+                                        from: 1
+                                        to: 10
+                                        unit: ""
+                                        onStepped: v => win.setAppWs(arow.index, v)
+                                    }
+                                    SkewChip {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        label: "QUITAR"
+                                        fill: "transparent"
+                                        fg: Theme.paper
+                                        border: Qt.alpha(Theme.paper, 0.35)
+                                        size: 19
+                                        height: 36
+                                        onClicked: win.removeApp(arow.index)
+                                    }
+                                }
+                            }
+                        }
+
+                        // Buscador de app para la entrada elegida
+                        Row {
+                            visible: win.appSlot >= 0
+                            spacing: 14
+                            SearchBox {
+                                id: appBox
+                                width: 320
+                                accent: win.tone
+                                placeholder: "app para la entrada " + (win.appSlot + 1) + "…"
+                                onTextChanged: win.pickQuery = text
+                                onKeyPressed: e => {
+                                    if (e.key === Qt.Key_Escape) {
+                                        win.appSlot = -1;
+                                        keys.forceActiveFocus();
+                                        e.accepted = true;
+                                    } else if ((e.key === Qt.Key_Return || e.key === Qt.Key_Enter) && win.pickResults.length) {
+                                        win.setApp(win.appSlot, win.pickResults[0]);
+                                        keys.forceActiveFocus();
+                                        e.accepted = true;
+                                    }
+                                }
+                            }
+                            Repeater {
+                                model: win.appSlot >= 0 ? win.pickResults : []
+                                SkewChip {
+                                    required property var modelData
+                                    required property int index
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    label: modelData.name.toUpperCase()
+                                    fill: index === 0 ? win.tone : "transparent"
+                                    fg: index === 0 ? Theme.on(win.tone) : Theme.paper
+                                    border: index === 0 ? win.tone : Qt.alpha(Theme.paper, 0.35)
+                                    size: 19
+                                    height: 36
+                                    onClicked: {
+                                        keys.forceActiveFocus();
+                                        win.setApp(win.appSlot, modelData);
+                                    }
                                 }
                             }
                         }
@@ -1021,7 +1292,7 @@ PanelWindow {
                         t: "SECCIÓN"
                     },
                     {
-                        k: "1–4",
+                        k: "1–5",
                         t: "IR A SECCIÓN"
                     },
                     {

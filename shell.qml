@@ -40,6 +40,9 @@ Scope {
         source: Qt.resolvedUrl("assets/fonts/Montserrat-Black.ttf")
     }
 
+    // Aplica energía, bloqueo, luz nocturna, gamemode y apps según el modo
+    readonly property var modeApply: ModeApply
+
     Variants {
         model: Quickshell.screens
 
