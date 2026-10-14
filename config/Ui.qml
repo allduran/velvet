@@ -14,4 +14,6 @@ Singleton {
     property string wallpaperScreen: ""
     // Monitor con el panel de rendimiento abierto ("" = cerrado)
     property string perfScreen: ""
+    // Monitor con los ajustes abiertos ("" = cerrado)
+    property string settingsScreen: ""
 }

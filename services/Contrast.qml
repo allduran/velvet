@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import "../config"
 
 // Brillo y variación de la franja superior del fondo, por monitor y zona (left / center / right).
 // Lo rellena Wallpaper.qml cada vez que cambia el fondo.
@@ -22,12 +23,16 @@ Singleton {
     }
 
     function busy(screenName, zone) {
+        if (!Config.adaptiveText)
+            return false;
         const z = zones[screenName];
         return !!z && !!z[zone] && z[zone].dev > busyThreshold;
     }
 
     // Claro y uniforme → tinta oscura. Si es variado gana la placa (tinta clara).
     function light(screenName, zone) {
+        if (!Config.adaptiveText)
+            return false;
         const z = zones[screenName];
         return !!z && !!z[zone] && !busy(screenName, zone) && z[zone].mean > threshold;
     }

@@ -75,12 +75,7 @@ PanelWindow {
     readonly property point coreOffset: Qt.point(0, 0)
 
     // Favoritas por modo: nombre o id de la app
-    readonly property var pins: ({
-            general: ["zen", "nemo", "komikku", "bitwarden"],
-            dev: ["unityhub", "code", "zen", "obs"],
-            art: ["krita", "blender", "kdenlive", "dolphin"],
-            game: ["steam", "heroic", "vesktop", "obs"]
-        })
+    readonly property var pins: Config.pins
     readonly property var core: [
         {
             key: "5",
@@ -90,7 +85,7 @@ PanelWindow {
         {
             key: "6",
             label: "AJUSTES",
-            meta: "PRÓXIMAMENTE"
+            meta: "SISTEMA"
         }
     ]
     // ══════════════════════════════════════
@@ -116,7 +111,7 @@ PanelWindow {
             return [];
         return DesktopEntries.applications.values.filter(e => !e.noDisplay && (e.name.toLowerCase().includes(q) || (e.genericName || "").toLowerCase().includes(q) || (e.keywords || []).some(k => k.toLowerCase().includes(q)))).map(e => ({
                     e: e,
-                    score: (e.name.toLowerCase().startsWith(q) ? 100 : 0) + win.rank(e.id) * 5
+                    score: (e.name.toLowerCase().startsWith(q) ? 100 : 0) + (Config.rankSort ? win.rank(e.id) * 5 : 0)
                 })).sort((a, b) => b.score - a.score).slice(0, 6).map(x => x.e);
     }
     readonly property var current: results[sel] ?? null
@@ -215,7 +210,11 @@ PanelWindow {
             close();
             Quickshell.execDetached(["foot"]);
         }
-        // i === 1 (Ajustes): sin acción por ahora
+        if (i === 1) {           // Ajustes
+            const s = win.screen.name;
+            close();
+            Ui.settingsScreen = s;
+        }
     }
 
     // ═══════════ Fondo ═══════════

@@ -13,6 +13,7 @@ import "osd"
 import "capture"
 import "clip"
 import "services"
+import "settings"
 
 Scope {
     // Fuentes propias de velvet (se registran para todo el shell)
@@ -69,6 +70,9 @@ Scope {
             Perf {
                 screen: s.modelData
             }
+            Settings {
+                screen: s.modelData
+            }
         }
     }
 
@@ -106,6 +110,14 @@ Scope {
         target: "notifs"
         function clear(): void {
             Notifs.clearAll();
+        }
+    }
+
+    // qs -c velvet ipc call settings toggle
+    IpcHandler {
+        target: "settings"
+        function toggle(): void {
+            Ui.settingsScreen = Ui.settingsScreen !== "" ? "" : (Hyprland.focusedMonitor?.name ?? "");
         }
     }
 }

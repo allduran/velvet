@@ -15,7 +15,7 @@ Item {
     readonly property bool critical: n?.urgency === NotificationUrgency.Critical
     readonly property color tone: critical ? Theme.accent : Theme.at(n?.id ?? 0)
     readonly property var actions: (n?.actions ?? []).filter(a => a.identifier !== "default")
-    readonly property real timeout: critical ? 0 : (n?.expireTimeout > 0 ? n.expireTimeout * 1000 : 7000)
+    readonly property real timeout: critical ? 0 : (n?.expireTimeout > 0 ? n.expireTimeout * 1000 : Config.notifSecs * 1000)
     readonly property string iconSrc: n?.image ? n.image : n?.appIcon ? Quickshell.iconPath(n.appIcon, true) : ""
     property real fill: 1
     property var born: new Date()

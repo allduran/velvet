@@ -2,12 +2,13 @@ pragma Singleton
 import Quickshell
 import Quickshell.Services.Notifications
 import QtQuick
+import "../config"
 
 Singleton {
     id: root
 
     property int unread: 0
-    property bool dnd: false              // No molestar: solo pasan las críticas
+    readonly property bool dnd: Config.dnd   // No molestar: se cambia en Ajustes (Config.dnd)
     property var popups: []               // burbujas visibles ahora
     property var banner: null             // notificación crítica en la banda
     readonly property var all: server.trackedNotifications.values   // historial

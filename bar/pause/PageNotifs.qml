@@ -16,7 +16,7 @@ Column {
             tone: 1
             label: Notifs.dnd ? "NO MOLESTAR · ON" : "NO MOLESTAR · OFF"
             active: Notifs.dnd
-            onClicked: Notifs.dnd = !Notifs.dnd
+            onClicked: Config.dnd = !Config.dnd
         }
         Chip {
             label: "LIMPIAR TODO"
