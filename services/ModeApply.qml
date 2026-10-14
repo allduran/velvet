@@ -52,6 +52,11 @@ Singleton {
         Config.applyIdle();          // bloqueo / pantalla / suspensión
         applyNight();
         applyGamemode();
+        applyTerm();
+    }
+
+    function applyTerm() {
+        Quickshell.execDetached(["bash", Quickshell.shellDir + "/scripts/term.sh"].concat(Theme.trio.map(c => String(c).replace("#", "").toLowerCase())));
     }
 
     function applyProfile() {
