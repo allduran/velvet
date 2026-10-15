@@ -98,6 +98,40 @@ PanelWindow {
         }
     }
 
+    // Sin fondos en ~/Pictures/Wallpapers: franjas con los colores del modo
+    Item {
+        anchors.fill: parent
+        visible: !Wallpapers.current
+        clip: true
+        Rectangle {
+            anchors.centerIn: parent
+            width: parent.width * 1.6
+            height: parent.height * 0.34
+            rotation: -18
+            color: Theme.trio[0]
+            Behavior on color {
+                enabled: Config.animations
+                ColorAnimation {
+                    duration: 450
+                }
+            }
+        }
+        Rectangle {
+            anchors.centerIn: parent
+            anchors.verticalCenterOffset: parent.height * 0.24
+            width: parent.width * 1.6
+            height: parent.height * 0.05
+            rotation: -18
+            color: Theme.trio[1]
+            Behavior on color {
+                enabled: Config.animations
+                ColorAnimation {
+                    duration: 450
+                }
+            }
+        }
+    }
+
     Image {
         id: a
         anchors.fill: parent

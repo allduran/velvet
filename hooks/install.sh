@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
-# Instalación de velvet: lo que no resuelve stow. Idempotente.
-# Refleja lo declarado en ../shell.toml (cuando exista el CLI, lo hará él).
+# Instalación de velvet: lo que no son paquetes (los instala `duran install` desde shell.toml).
+# Idempotente: no pisa nada que ya exista.
 set -euo pipefail
 
 step() { printf '  \e[1;34m·\e[0m %s\n' "$*"; }
-have() { command -v "$1" >/dev/null 2>&1; }
 
-here="$(dirname "$(realpath "$0")")"
-scripts="$here/../scripts"
+root="$(dirname "$(realpath "$0")")/.."
+scripts="$root/scripts"
 state="$HOME/.local/state/velvet"
+hypr="$HOME/.config/hypr"
 
-# Paquetes (paru resuelve repo + AUR; si no, pacman)
-pkgs=(quickshell grim swappy wf-recorder wl-clipboard imagemagick brightnessctl ddcutil
-      power-profiles-daemon gamemode hypridle hyprsunset
-      libnotify curl libpulse procps-ng bash cliphist wtype
-      ttf-jetbrains-mono noto-fonts-emoji)
-step "paquetes"
-if have paru; then paru -S --needed "${pkgs[@]}"; else sudo pacman -S --needed "${pkgs[@]}"; fi
+# Hyprland: si no hay config, se instala la de inicio de velvet (ya preparada para duran)
+if [ ! -e "$hypr/hyprland.lua" ] && [ ! -e "$hypr/hyprland.conf" ]; then
+    step "Hyprland sin configurar: instalando la config de inicio en $hypr"
+    mkdir -p "$hypr"
+    cp -r --update=none "$root/hypr/starter/." "$hypr/"
+else
+    step "Hyprland ya configurado: no se toca (mira el README para integrarlo)"
+fi
+[ -e "$hypr/hyprsunset.conf" ] || cp "$root/hypr/starter/hyprsunset.conf" "$hypr/"
 
 # Brillo de monitores externos (ddcutil)
 step "módulo i2c-dev + grupo i2c"
@@ -44,26 +46,25 @@ pkill -x hyprpaper 2>/dev/null || true
 # Carpetas que usa
 step "carpetas"
 mkdir -p "$HOME/Pictures/Wallpapers" "$HOME/Pictures/Screenshots" "$HOME/Videos/Recordings" "$state"
-
-# Scripts ejecutables
 chmod +x "$scripts"/*.sh
 
 # Modo inicial (lo leen velvet y Hyprland)
 [ -f "$state/mode" ] || echo general > "$state/mode"
 
-# Colores de terminal del modo GENERAL: foot.ini incluye foot-colors.ini y debe existir
-# antes del primer arranque de velvet (luego velvet los regenera según el modo)
+# Colores de terminal del modo GENERAL (luego velvet los regenera según el modo)
 step "colores de terminal (foot + fastfetch)"
 bash "$scripts/term.sh" e60012 0055ff ffe600
 
 # Bloqueo por inactividad: hypridle.conf lo genera velvet (Ajustes → Energía)
-if [ -e "$HOME/.config/hypr/hypridle.conf" ] || [ -d "$HOME/.config/hypr" ]; then
-    step "hypridle (5 min bloquear · 10 min pantalla)"
-    [ -e "$HOME/.config/hypr/hypridle.conf" ] || touch "$HOME/.config/hypr/hypridle.conf"
-    sh "$scripts/idle.sh" 5 10 0 || true
-    systemctl --user enable --now hypridle.service 2>/dev/null || true
-else
-    step "hypridle: falta ~/.config/hypr (stow hypr primero) — saltado"
-fi
+step "hypridle (5 min bloquear · 10 min pantalla)"
+[ -e "$hypr/hypridle.conf" ] || touch "$hypr/hypridle.conf"
+bash "$scripts/idle.sh" 5 10 0 || true
+systemctl --user enable --now hypridle.service 2>/dev/null || true
 
 step "velvet instalado (cierra sesión si te ha añadido a i2c o gamemode)"
+cat <<'EOF'
+
+  Opcional, para que la terminal siga los colores del modo:
+    foot:  primera línea de ~/.config/foot/foot.ini → include=~/.local/state/velvet/foot-colors.ini
+    fish:  function fish_greeting; fastfetch -c ~/.local/state/velvet/fastfetch.jsonc; end
+EOF

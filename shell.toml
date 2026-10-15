@@ -1,12 +1,11 @@
 # Manifiesto de velvet: lo que necesita para funcionar.
-# Hoy lo aplica hooks/install.sh; el futuro CLI leerá este archivo directamente.
+# duran instala los paquetes; hooks/install.sh hace el resto.
 
 [shell]
 name = "velvet"
 description = "Shell estilo Persona (P3 · P4 · P5) para Hyprland con modos general / dev / art / game"
 version = "0.2.0"
 engine = "quickshell"
-config_dir = "~/.config/quickshell/velvet"
 start = "qs -c velvet -d"
 stop = "qs -c velvet kill"
 
@@ -17,6 +16,7 @@ repo = [
   "brightnessctl", "ddcutil",                                        # brillo
   "power-profiles-daemon", "gamemode",                               # energía por modo
   "hypridle", "hyprsunset",                                          # bloqueo y luz nocturna por modo
+  "polkit-gnome", "gnome-keyring",                                   # autenticación y llavero (config de inicio)
   "libnotify", "curl", "libpulse", "procps-ng", "bash",              # notificaciones, tiempo, audio, procesos, scripts
   "cliphist", "wtype",                                               # portapapeles y emojis
   "ttf-jetbrains-mono", "noto-fonts-emoji",

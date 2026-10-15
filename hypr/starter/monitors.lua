@@ -1,0 +1,7 @@
+-- Monitores. hyprland.lua ya aplica una regla por defecto (resolución preferida, posición auto).
+-- Para colocarlos a mano, usa nwg-displays (genera este archivo) o añade reglas como:
+--
+-- hl.monitor({ output = "HDMI-A-1", mode = "1920x1080@60", position = "0x0", scale = 1 })
+-- hl.monitor({ output = "eDP-1",    mode = "preferred",     position = "auto", scale = 1 })
+--
+-- Nombres de tus salidas: hyprctl monitors
