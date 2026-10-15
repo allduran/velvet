@@ -18,7 +18,7 @@ repo = [
   "hypridle", "hyprsunset",                                          # bloqueo y luz nocturna por modo
   "polkit-gnome", "gnome-keyring",                                   # autenticación y llavero (config de inicio)
   "libnotify", "curl", "libpulse", "procps-ng", "bash",              # notificaciones, tiempo, audio, procesos, scripts
-  "cliphist", "wtype",                                               # portapapeles y emojis
+  "cliphist", "wtype", "hyprpicker", "foot",                         # portapapeles, emojis, color, terminal
   "ttf-jetbrains-mono", "noto-fonts-emoji",
 ]
 aur = []

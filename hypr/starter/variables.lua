@@ -53,7 +53,7 @@ return {
     volumeMax                  = 100,
     cursorTheme                = "Adwaita",
     cursorSize                 = 24,
-    sleepGestureCmd            = "systemctl suspend-then-hibernate",
+    sleepGestureCmd            = "systemctl suspend",
 
     ------------------
     ---- KEYBINDS ----
