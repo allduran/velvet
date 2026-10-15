@@ -5,6 +5,7 @@
 name = "velvet"
 description = "Shell estilo Persona (P3 · P4 · P5) para Hyprland con modos general / dev / art / game"
 version = "0.2.0"
+license = "GPL-3.0-or-later"
 engine = "quickshell"
 start = "qs -c velvet -d"
 stop = "qs -c velvet kill"

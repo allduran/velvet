@@ -106,3 +106,7 @@ duran uninstall velvet
 ```
 
 Para el shell, ejecuta `hooks/uninstall.sh` y quita su parte de Hyprland. Tu `~/.config/hypr` se queda.
+
+## Licencia
+
+[GPL-3.0](LICENSE). Las fuentes de `assets/fonts` (Bebas Neue, Montserrat) mantienen su licencia SIL OFL.
