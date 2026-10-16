@@ -115,3 +115,4 @@ processes = ["hyprpaper"]
 [hooks]
 install = "hooks/install.sh"
 uninstall = "hooks/uninstall.sh"
+update = "hooks/update.sh"         # tras `duran update`: pone al día la config de Hyprland

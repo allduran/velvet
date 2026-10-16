@@ -33,15 +33,41 @@ duran install allduran/velvet --switch
 
 duran instala los paquetes de `shell.toml` y ejecuta `hooks/install.sh`, que:
 
-- si **no tienes config de Hyprland**, copia la de inicio (`hypr/starter`) a `~/.config/hypr`;
+- pone **su config de Hyprland** (`hypr/starter`) en `~/.config/hypr`. Si ya tenías una, **te avisa,
+  la guarda y la sustituye** (ver [Tu config de Hyprland anterior](#tu-config-de-hyprland-anterior));
 - activa power-profiles-daemon, hypridle, i2c (brillo de monitores externos) y gamemode;
 - crea las carpetas y el estado de velvet.
 
 Cierra sesión y entra en Hyprland. Si te añadió a los grupos `i2c` o `gamemode`, hace falta para que cuenten.
 
-### Ya tengo mi config de Hyprland
+Con `duran update velvet` pasa lo mismo cuando una versión nueva cambia la config de Hyprland:
+avisa, guarda la tuya y pone la nueva (tus pantallas y tus workspaces especiales se conservan).
 
-El hook no la toca. Para integrar velvet:
+### Tu config de Hyprland anterior
+
+Cada vez que velvet sustituye `~/.config/hypr`, guarda la que había en
+`~/.config/hypr.antes-de-velvet-<fecha>`. Para verlas y volver a una:
+
+```sh
+ls -d ~/.config/hypr.antes-de-velvet-*          # copias guardadas, la última al final
+duran stop
+mv ~/.config/hypr ~/.config/hypr.velvet
+mv ~/.config/hypr.antes-de-velvet-<fecha> ~/.config/hypr
+hyprctl reload
+```
+
+Para que velvet **no toque nunca** tu config, responde `n` cuando pregunte, o instala y actualiza así:
+
+```sh
+VELVET_KEEP_HYPR=1 duran install allduran/velvet
+VELVET_KEEP_HYPR=1 duran update velvet
+```
+
+Si `~/.config/hypr` es un enlace o un repo git (dotfiles con stow), velvet tampoco lo toca.
+
+### Ya tengo mi config de Hyprland (y quiero conservarla)
+
+Para integrar velvet a mano:
 
 1. **Tema por modo:** velvet trae `hypr/shell.lua`, que duran enlaza en `~/.config/hypr/shell.lua`.
    Cárgalo desde tu config y usa sus valores (`accent`, `inactive`, `gapsIn`, `gapsOut`, `animations`, `blur`, `vrr`…):
@@ -53,6 +79,8 @@ El hook no la toca. Para integrar velvet:
 2. **Arranque:** `hl.exec_cmd("duran start")` y el historial del portapapeles
    (`wl-paste --type text --watch cliphist store`, ídem con `image`).
 3. **Atajos:** llama a `duran ipc <acción>` (lista completa: `duran ipc`). Ejemplos en `hypr/starter/hyprland/keybinds.lua`.
+   Las apps de Ajustes → Atajos: `duran ipc app <terminal|browser|editor|files|audio>`.
+   El teclado de Ajustes: usa `kbLayout` y `kbOptions` del tema (ejemplo en `hypr/starter/hyprland/input.lua`).
 4. Quita otros fondos (hyprpaper) y otras luces nocturnas (gammastep, wlsunset): velvet ya lo hace.
 
 ## Atajos (config de inicio)

@@ -39,6 +39,7 @@ duran install allduran/velvet
 
 - Te pedirá la contraseña y confirmar paquetes: acepta.
 - Prepara Hyprland para velvet y usa las apps que ya tienes (navegador, archivos, editor).
+- Si ya usabas Hyprland, te avisa antes de sustituir tu config y guarda una copia (el README explica cómo recuperarla).
 
 ## 4. Entrar en Hyprland
 
