@@ -132,6 +132,14 @@ Scope {
         }
     }
 
+    // qs -c velvet ipc call app launch browser  (duran ipc app browser) → Ajustes · Atajos
+    IpcHandler {
+        target: "app"
+        function launch(slot: string): void {
+            Shortcuts.launch(slot);
+        }
+    }
+
     // qs -c velvet ipc call mode toggle  |  qs -c velvet ipc call mode set dev
     IpcHandler {
         target: "mode"

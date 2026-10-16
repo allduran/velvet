@@ -158,11 +158,11 @@ create_bind(vars.kbCommunicationWs, fn.toggle("communication"))
 create_bind(vars.kbTodoWs, fn.toggle("todo"))
 
 -- Apps
-create_bind(vars.kbTerminal, hl.dsp.exec_cmd(vars.terminal))
-create_bind(vars.kbBrowser, hl.dsp.exec_cmd(vars.browser))
-create_bind(vars.kbEditor, hl.dsp.exec_cmd(vars.editor))
-create_bind(vars.kbFileExplorer, hl.dsp.exec_cmd(vars.fileExplorer))
-create_bind(vars.kbAudioSettings, hl.dsp.exec_cmd(vars.audioSettings))
+create_bind(vars.kbTerminal, hl.dsp.exec_cmd("duran ipc app terminal || " .. vars.terminal))
+create_bind(vars.kbBrowser, hl.dsp.exec_cmd("duran ipc app browser || " .. vars.browser))
+create_bind(vars.kbEditor, hl.dsp.exec_cmd("duran ipc app editor || " .. vars.editor))
+create_bind(vars.kbFileExplorer, hl.dsp.exec_cmd("duran ipc app files || " .. vars.fileExplorer))
+create_bind(vars.kbAudioSettings, hl.dsp.exec_cmd("duran ipc app audio || " .. vars.audioSettings))
 
 -- Utilities
 

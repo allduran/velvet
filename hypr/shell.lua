@@ -1,7 +1,8 @@
 -- velvet — parte de Hyprland del shell.
 -- duran la enlaza en ~/.config/hypr/shell.lua al hacer `duran switch velvet`.
 -- Devuelve { theme = … } con los colores y ajustes del modo activo
--- (lo lee scheme/active.lua de tus dotfiles) y aplica las reglas propias de velvet.
+-- (lo lee scheme/active.lua de tus dotfiles: colores, huecos, efectos y teclado)
+-- y aplica las reglas propias de velvet.
 
 -- Paletas y ajustes por modo (mismo trío que Theme en QML)
 -- gapsIn/gapsOut: huecos · animations/blur: efectos · vrr: 0 no, 1 siempre, 2 solo pantalla completa
@@ -36,4 +37,18 @@ if f then f:close() end
 -- Reglas propias de velvet: sin animación de Hyprland, velvet anima sus paneles
 hl.layer_rule({ match = { namespace = "velvet-.*" }, no_anim = true })
 
-return { theme = modes[m] or modes.general }
+-- Teclado elegido en Ajustes → Atajos → Teclado (lo escribe velvet; no existe hasta tocarlo)
+local kb = {}
+local kf = io.open(os.getenv("HOME") .. "/.local/state/velvet/keyboard", "r")
+if kf then
+    for line in kf:lines() do
+        local k, v = line:match("^(%w+)=(.*)$")
+        if k then kb[k] = v end
+    end
+    kf:close()
+end
+
+local theme = modes[m] or modes.general
+theme.kbLayout = (kb.layouts and kb.layouts ~= "") and kb.layouts or nil   -- nil = el de input.lua
+theme.kbOptions = kb.options
+return { theme = theme }

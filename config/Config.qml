@@ -15,6 +15,10 @@ Singleton {
     property alias pins: store.pins                      // { general: [id, id, id, id], ... }
     property alias rankSort: store.rankSort
     property alias notifSecs: store.notifSecs
+    property alias shortcutApps: store.shortcutApps      // { terminal: id, browser: id, … } (vacío = del sistema)
+    property alias wsApps: store.wsApps                  // { communication: [{ id, name, cls, cmd }], … }
+    property alias kbLayouts: store.kbLayouts            // "us,es" ("" = el que tenga Hyprland)
+    property alias kbToggle: store.kbToggle              // xkb: grp:alt_shift_toggle…
 
     // ── Por modo (siempre los del modo activo) ──
     readonly property var m: store.perMode[Theme.mode] ?? defaults[Theme.mode]
@@ -141,6 +145,10 @@ Singleton {
                 })
             property bool rankSort: true
             property int notifSecs: 5
+            property var shortcutApps: ({})
+            property var wsApps: ({})
+            property string kbLayouts: ""
+            property string kbToggle: "grp:alt_shift_toggle"
             property var perMode: ({})
         }
     }

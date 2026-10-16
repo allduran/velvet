@@ -51,6 +51,10 @@ PanelWindow {
             name: "MODO",
             sub: "APPS AL ENTRAR",
             perMode: true
+        },
+        {
+            name: "ATAJOS",
+            sub: "APPS · WORKSPACES · TECLADO"
         }
     ]
     // Subtítulo de la sección; las que van por modo dicen de cuál
@@ -86,6 +90,111 @@ PanelWindow {
         appSlot = -1;
     }
     property int sec: 0
+
+    // ── Atajos ──
+    property string scTab: "apps"        // apps | ws | kb
+    property string scPickKind: ""       // "" | app | ws  (selector de app abierto)
+    property string scPickSlot: ""
+    property string scQuery: ""
+    readonly property string scPickName: {
+        const list = scPickKind === "app" ? Shortcuts.slots : Shortcuts.spaces;
+        return list.find(x => x.id === scPickSlot)?.name ?? "";
+    }
+    readonly property var scResults: {
+        if (scPickKind === "")
+            return [];
+        const q = scQuery.trim().toLowerCase();
+        const all = DesktopEntries.applications.values.filter(e => !e.noDisplay);
+        let list = [];
+        if (q)
+            list = all.filter(e => e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q) || (e.genericName || "").toLowerCase().includes(q) || (e.startupClass || "").toLowerCase().includes(q) || (e.keywords || []).some(k => k.toLowerCase().includes(q)));
+        else if (scPickKind === "app") {
+            const sl = Shortcuts.slots.find(x => x.id === scPickSlot);
+            list = all.filter(e => (e.categories || []).includes(sl?.cat ?? ""));
+        }
+        if (scPickKind === "ws") {
+            const taken = Shortcuts.wsList(scPickSlot).map(a => a.id);
+            list = list.filter(e => !taken.includes(e.id));
+        }
+        return list.slice(0, 6);
+    }
+    readonly property bool scShowAuto: scPickKind === "app" && scQuery.trim() === ""
+    function openPicker(kind, slot) {
+        scPickKind = kind;
+        scPickSlot = slot;
+        scQuery = "";
+        scBox.text = "";
+        scBox.input.forceActiveFocus();
+    }
+    function closePicker() {
+        keys.forceActiveFocus();
+        scPickKind = "";
+    }
+    // Se copian los datos antes de cerrar: cerrar destruye la fila que llamó
+    function pickEntry(e) {
+        const kind = scPickKind, slot = scPickSlot, name = scPickName;
+        const id = e ? e.id : "", label = e ? e.name.toUpperCase() : "AUTO";
+        closePicker();
+        if (kind === "app")
+            Shortcuts.setApp(slot, id);
+        else if (kind === "ws" && e)
+            Shortcuts.addToWs(slot, e);
+        say(name + " → " + label);
+    }
+
+    // Teclas de un atajo: [SUPER] + [T]
+    component Keycaps: Row {
+        property string combo
+        spacing: 6
+        Repeater {
+            model: parent.combo.split(" + ")
+            Row {
+                required property string modelData
+                required property int index
+                spacing: 6
+                Text {
+                    visible: index > 0
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "+"
+                    color: Theme.telemetry
+                    font {
+                        family: "JetBrains Mono"
+                        pixelSize: 12
+                        weight: Font.ExtraBold
+                    }
+                }
+                Item {
+                    width: kc.implicitWidth + 18
+                    height: 30
+                    Rectangle {
+                        x: 3
+                        y: 3
+                        width: parent.width
+                        height: parent.height
+                        color: Qt.alpha(Theme.paper, 0.35)
+                    }
+                    Rectangle {
+                        anchors.fill: parent
+                        color: Theme.ink
+                        border.width: 2
+                        border.color: Theme.paper
+                        Text {
+                            id: kc
+                            anchors.centerIn: parent
+                            text: modelData
+                            color: Theme.paper
+                            font {
+                                family: "JetBrains Mono"
+                                pixelSize: 11
+                                weight: Font.ExtraBold
+                                letterSpacing: 1
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     readonly property color tone: Theme.at(sec)
 
     // ── Lanzador: edición de favoritas ──
@@ -159,6 +268,7 @@ PanelWindow {
         favMode = Theme.mode;
         pickSlot = -1;
         appSlot = -1;
+        scPickKind = "";
         flash = "";
         focusT.restart();
     }
@@ -188,12 +298,13 @@ PanelWindow {
                 win.sec = Math.max(0, win.sec - 1);
             else if (e.key === Qt.Key_Down)
                 win.sec = Math.min(win.sections.length - 1, win.sec + 1);
-            else if (e.key >= Qt.Key_1 && e.key <= Qt.Key_5)
+            else if (e.key >= Qt.Key_1 && e.key <= Qt.Key_6)
                 win.sec = e.key - Qt.Key_1;
             else
                 return;
             win.pickSlot = -1;
             win.appSlot = -1;
+            win.scPickKind = "";
             e.accepted = true;
         }
     }
@@ -344,6 +455,7 @@ PanelWindow {
                             win.sec = index;
                             win.pickSlot = -1;
                             win.appSlot = -1;
+                            win.scPickKind = "";
                         }
                     }
                 }
@@ -1203,6 +1315,618 @@ PanelWindow {
                             }
                         }
                     }
+
+                    // 06 ATAJOS
+                    Column {
+                        visible: win.sec === 5
+                        width: parent.width
+
+                        // APPS · WORKSPACES · TECLADO
+                        Item {
+                            width: parent.width
+                            height: 58
+                            Row {
+                                anchors.verticalCenter: parent.verticalCenter
+                                spacing: 12
+                                Repeater {
+                                    model: [
+                                        {
+                                            id: "apps",
+                                            label: "APPS · " + Shortcuts.slots.length
+                                        },
+                                        {
+                                            id: "ws",
+                                            label: "WORKSPACES · " + Shortcuts.spaces.length
+                                        },
+                                        {
+                                            id: "kb",
+                                            label: "TECLADO"
+                                        }
+                                    ]
+                                    SkewChip {
+                                        required property var modelData
+                                        readonly property bool on: win.scTab === modelData.id
+                                        label: modelData.label
+                                        fill: on ? win.tone : "transparent"
+                                        fg: on ? Theme.on(win.tone) : Theme.paper
+                                        border: on ? win.tone : Qt.alpha(Theme.paper, 0.35)
+                                        size: 22
+                                        padding: 18
+                                        height: 38
+                                        onClicked: {
+                                            win.scTab = modelData.id;
+                                            win.scPickKind = "";
+                                        }
+                                    }
+                                }
+                            }
+                            Text {
+                                visible: win.scTab !== "kb"
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "TECLAS FIJAS EN HYPRLAND · AQUÍ ELIGES QUÉ ABREN"
+                                color: Theme.telemetry
+                                font {
+                                    family: "JetBrains Mono"
+                                    pixelSize: 10
+                                    bold: true
+                                    letterSpacing: 1.5
+                                }
+                            }
+                            Rectangle {
+                                anchors.bottom: parent.bottom
+                                width: parent.width
+                                height: 2
+                                color: Qt.alpha(Theme.paper, 0.18)
+                            }
+                        }
+
+                        // ── APPS ──
+                        Repeater {
+                            model: win.scTab === "apps" ? Shortcuts.slots : []
+                            Item {
+                                id: srow
+                                required property var modelData
+                                required property int index
+                                readonly property var entry: Shortcuts.entryFor(modelData.id)
+                                readonly property bool isAuto: !Config.shortcutApps[modelData.id]
+                                readonly property bool on: win.scPickKind === "app" && win.scPickSlot === modelData.id
+                                readonly property color c: Theme.at(index)
+                                width: parent.width
+                                height: 76
+
+                                Keycaps {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    combo: srow.modelData.combo
+                                }
+                                Column {
+                                    x: 250
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    spacing: 3
+                                    Text {
+                                        text: srow.modelData.name
+                                        color: Theme.paper
+                                        font {
+                                            family: "Bebas Neue"
+                                            pixelSize: 30
+                                            letterSpacing: 2
+                                        }
+                                    }
+                                    Text {
+                                        text: "duran ipc app " + srow.modelData.id
+                                        color: Theme.telemetry
+                                        font {
+                                            family: "JetBrains Mono"
+                                            pixelSize: 9
+                                            bold: true
+                                            letterSpacing: 1.5
+                                        }
+                                    }
+                                }
+                                Item {
+                                    anchors.right: parent.right
+                                    anchors.rightMargin: 8
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: 320
+                                    height: 56
+                                    rotation: [-1.2, 1, -0.6, 1.2, -1][srow.index]
+                                    Slant {
+                                        x: 6
+                                        y: 6
+                                        width: parent.width
+                                        height: parent.height
+                                        color: srow.on ? win.tone : srow.c
+                                    }
+                                    Slant {
+                                        anchors.fill: parent
+                                        color: srow.on ? Theme.paper : Qt.alpha(Theme.ink, 0.95)
+                                        borderWidth: 2
+                                        borderColor: srow.on ? Theme.paper : Qt.alpha(Theme.paper, srow.isAuto ? 0.45 : 0.9)
+                                        Row {
+                                            x: 18
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            spacing: 12
+                                            IconImage {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                implicitSize: 28
+                                                source: Quickshell.iconPath(srow.entry?.icon ?? "", "application-x-executable")
+                                            }
+                                            Column {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                spacing: 1
+                                                Text {
+                                                    width: 230
+                                                    elide: Text.ElideRight
+                                                    text: (srow.entry?.name ?? "SIN APP").toUpperCase()
+                                                    color: srow.on ? Theme.ink : Theme.paper
+                                                    font {
+                                                        family: "Bebas Neue"
+                                                        pixelSize: 24
+                                                        letterSpacing: 1.5
+                                                    }
+                                                }
+                                                Text {
+                                                    text: srow.isAuto ? "AUTO · PREDETERMINADA DEL SISTEMA" : "CLIC PARA CAMBIAR"
+                                                    color: srow.on ? Theme.ink : Theme.paper
+                                                    opacity: 0.75
+                                                    font {
+                                                        family: "JetBrains Mono"
+                                                        pixelSize: 9
+                                                        weight: Font.ExtraBold
+                                                        letterSpacing: 1.5
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: win.openPicker("app", srow.modelData.id)
+                                    }
+                                }
+                                Rectangle {
+                                    anchors.bottom: parent.bottom
+                                    width: parent.width
+                                    height: 1
+                                    color: Qt.alpha(Theme.paper, 0.12)
+                                }
+                            }
+                        }
+
+                        // ── WORKSPACES ──
+                        Repeater {
+                            model: win.scTab === "ws" ? Shortcuts.spaces : []
+                            Item {
+                                id: wrow
+                                required property var modelData
+                                required property int index
+                                readonly property var list: Shortcuts.wsList(modelData.id)
+                                width: parent.width
+                                height: Math.max(88, chips.height + 20)
+
+                                Keycaps {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    combo: wrow.modelData.combo
+                                }
+                                Column {
+                                    x: 250
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    spacing: 3
+                                    Text {
+                                        text: wrow.modelData.name
+                                        color: Theme.paper
+                                        font {
+                                            family: "Bebas Neue"
+                                            pixelSize: 30
+                                            letterSpacing: 2
+                                        }
+                                    }
+                                    Text {
+                                        text: "special:" + wrow.modelData.id
+                                        color: Theme.telemetry
+                                        font {
+                                            family: "JetBrains Mono"
+                                            pixelSize: 9
+                                            bold: true
+                                            letterSpacing: 1.5
+                                        }
+                                    }
+                                }
+                                Flow {
+                                    id: chips
+                                    x: 460
+                                    width: parent.width - 460
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    spacing: 14
+                                    Repeater {
+                                        model: wrow.list
+                                        Item {
+                                            id: chip
+                                            required property var modelData
+                                            required property int index
+                                            readonly property color c: Theme.at(index + wrow.index)
+                                            width: chipRow.implicitWidth + 30
+                                            height: 42
+                                            Slant {
+                                                x: 4
+                                                y: 4
+                                                width: parent.width
+                                                height: parent.height
+                                                color: chip.c
+                                            }
+                                            Slant {
+                                                anchors.fill: parent
+                                                color: Qt.alpha(Theme.ink, 0.95)
+                                                borderWidth: 2
+                                                borderColor: Theme.paper
+                                                Row {
+                                                    id: chipRow
+                                                    x: 15
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    spacing: 8
+                                                    IconImage {
+                                                        anchors.verticalCenter: parent.verticalCenter
+                                                        implicitSize: 20
+                                                        source: Quickshell.iconPath(chip.modelData.icon || (Shortcuts.entry(chip.modelData.id)?.icon ?? ""), "application-x-executable")
+                                                    }
+                                                    Text {
+                                                        anchors.verticalCenter: parent.verticalCenter
+                                                        text: chip.modelData.name.toUpperCase()
+                                                        color: Theme.paper
+                                                        font {
+                                                            family: "Bebas Neue"
+                                                            pixelSize: 21
+                                                            letterSpacing: 1.5
+                                                        }
+                                                    }
+                                                    Text {
+                                                        anchors.verticalCenter: parent.verticalCenter
+                                                        text: "✕"
+                                                        color: Theme.paper
+                                                        font {
+                                                            family: "JetBrains Mono"
+                                                            pixelSize: 13
+                                                            weight: Font.ExtraBold
+                                                        }
+                                                        MouseArea {
+                                                            anchors.fill: parent
+                                                            anchors.margins: -8
+                                                            cursorShape: Qt.PointingHandCursor
+                                                            onClicked: {
+                                                                const ws = wrow.modelData.id, id = chip.modelData.id;
+                                                                const msg = chip.modelData.name.toUpperCase() + " FUERA DE " + wrow.modelData.name;
+                                                                Shortcuts.removeFromWs(ws, id);
+                                                                win.say(msg);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    SkewChip {
+                                        label: "+ AÑADIR"
+                                        fill: "transparent"
+                                        fg: Theme.paper
+                                        border: Theme.paper
+                                        size: 21
+                                        padding: 16
+                                        height: 42
+                                        onClicked: win.openPicker("ws", wrow.modelData.id)
+                                    }
+                                }
+                                Rectangle {
+                                    anchors.bottom: parent.bottom
+                                    width: parent.width
+                                    height: 1
+                                    color: Qt.alpha(Theme.paper, 0.12)
+                                }
+                            }
+                        }
+
+                        // ── TECLADO ──
+                        Column {
+                            visible: win.scTab === "kb"
+                            width: parent.width
+                            SetRow {
+                                label: "IDIOMAS DEL TECLADO"
+                                desc: "EL PRIMERO ES EL PRINCIPAL · HASTA 3 · PULSA PARA AÑADIR O QUITAR"
+                                Text {
+                                    text: Shortcuts.activeLayouts.map(c => c.toUpperCase()).join(" · ")
+                                    color: Theme.paper
+                                    font {
+                                        family: "Bebas Neue"
+                                        pixelSize: 34
+                                        letterSpacing: 2
+                                    }
+                                }
+                            }
+                            Flow {
+                                width: parent.width
+                                spacing: 14
+                                topPadding: 22
+                                bottomPadding: 24
+                                Repeater {
+                                    model: Shortcuts.layouts
+                                    SkewChip {
+                                        required property var modelData
+                                        readonly property int pos: Shortcuts.activeLayouts.indexOf(modelData.code)
+                                        label: (pos >= 0 ? (pos + 1) + " · " : "") + modelData.name
+                                        fill: pos >= 0 ? win.tone : "transparent"
+                                        fg: pos >= 0 ? Theme.on(win.tone) : Theme.paper
+                                        border: pos >= 0 ? win.tone : Qt.alpha(Theme.paper, 0.35)
+                                        size: 21
+                                        padding: 16
+                                        height: 40
+                                        onClicked: {
+                                            const code = modelData.code, name = modelData.name;
+                                            const was = pos >= 0;
+                                            Shortcuts.toggleLayout(code);
+                                            win.say((was ? "FUERA: " : "TECLADO + ") + name);
+                                        }
+                                    }
+                                }
+                            }
+                            SetRow {
+                                visible: Shortcuts.activeLayouts.length > 1
+                                label: "CAMBIAR DE IDIOMA"
+                                desc: "ATAJO PARA PASAR AL SIGUIENTE"
+                                Choice {
+                                    tone: win.tone
+                                    options: Shortcuts.toggles
+                                    value: Config.kbToggle
+                                    onPicked: v => Shortcuts.setToggle(v)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Selector de app (Atajos): carta sobre el televisor
+                Item {
+                    anchors.fill: parent
+                    visible: win.scPickKind !== ""
+                    z: 10
+                    Rectangle {
+                        y: 46
+                        width: parent.width
+                        height: parent.height - 62
+                        color: Qt.alpha(Theme.ink, 0.86)
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: win.closePicker()
+                    }
+                    Item {
+                        x: 205
+                        y: 96
+                        width: 540
+                        height: pcol.implicitHeight
+                        rotation: -1.5
+                        Rectangle {
+                            x: 12
+                            y: 12
+                            width: parent.width
+                            height: parent.height
+                            color: win.tone
+                        }
+                        Rectangle {
+                            anchors.fill: parent
+                            color: Theme.ink
+                            border.width: 3
+                            border.color: Theme.paper
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                        }
+                        Column {
+                            id: pcol
+                            width: parent.width
+                            Rectangle {
+                                width: parent.width
+                                height: 44
+                                color: Theme.paper
+                                Text {
+                                    x: 18
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: (win.scPickKind === "app" ? "ELIGE APP → " : "AÑADIR A WORKSPACE → ") + win.scPickName
+                                    color: Theme.ink
+                                    font {
+                                        family: "JetBrains Mono"
+                                        pixelSize: 11
+                                        weight: Font.ExtraBold
+                                        letterSpacing: 2
+                                    }
+                                }
+                                Text {
+                                    anchors.right: parent.right
+                                    anchors.rightMargin: 18
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: "✕"
+                                    color: Theme.ink
+                                    font {
+                                        family: "JetBrains Mono"
+                                        pixelSize: 16
+                                        weight: Font.ExtraBold
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        anchors.margins: -10
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: win.closePicker()
+                                    }
+                                }
+                            }
+                            Item {
+                                width: parent.width
+                                height: 74
+                                SearchBox {
+                                    id: scBox
+                                    x: 18
+                                    y: 16
+                                    width: parent.width - 36
+                                    height: 44
+                                    accent: win.tone
+                                    placeholder: "nombre, tipo o clase…"
+                                    onTextChanged: win.scQuery = text
+                                    onKeyPressed: e => {
+                                        if (e.key === Qt.Key_Escape) {
+                                            win.closePicker();
+                                            e.accepted = true;
+                                        } else if (e.key === Qt.Key_Return || e.key === Qt.Key_Enter) {
+                                            if (win.scResults.length)
+                                                win.pickEntry(win.scResults[0]);
+                                            else if (win.scShowAuto)
+                                                win.pickEntry(null);
+                                            e.accepted = true;
+                                        }
+                                    }
+                                }
+                            }
+                            // Volver a la del sistema
+                            Item {
+                                visible: win.scShowAuto
+                                width: parent.width
+                                height: 56
+                                Row {
+                                    x: 18
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    spacing: 12
+                                    Rectangle {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        width: 34
+                                        height: 34
+                                        color: "transparent"
+                                        border.width: 2
+                                        border.color: Theme.paper
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: "XDG"
+                                            color: Theme.paper
+                                            font {
+                                                family: "JetBrains Mono"
+                                                pixelSize: 10
+                                                weight: Font.ExtraBold
+                                            }
+                                        }
+                                    }
+                                    Column {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: 1
+                                        Text {
+                                            text: "PREDETERMINADA DEL SISTEMA"
+                                            color: Theme.paper
+                                            font {
+                                                family: "Bebas Neue"
+                                                pixelSize: 22
+                                                letterSpacing: 1.5
+                                            }
+                                        }
+                                        Text {
+                                            text: "AHORA " + (Shortcuts.autoEntry(win.scPickSlot)?.name ?? "NINGUNA").toUpperCase()
+                                            color: Theme.telemetry
+                                            font {
+                                                family: "JetBrains Mono"
+                                                pixelSize: 9
+                                                bold: true
+                                                letterSpacing: 1
+                                            }
+                                        }
+                                    }
+                                }
+                                Rectangle {
+                                    x: 18
+                                    anchors.bottom: parent.bottom
+                                    width: parent.width - 36
+                                    height: 1
+                                    color: Qt.alpha(Theme.paper, 0.25)
+                                }
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: win.pickEntry(null)
+                                }
+                            }
+                            Repeater {
+                                model: win.scResults
+                                Item {
+                                    id: res
+                                    required property var modelData
+                                    required property int index
+                                    readonly property bool cur: win.scPickKind === "app" && Config.shortcutApps[win.scPickSlot] === modelData.id
+                                    width: parent.width
+                                    height: 56
+                                    Rectangle {
+                                        x: 8
+                                        width: parent.width - 16
+                                        height: parent.height
+                                        color: res.cur ? win.tone : res.index === 0 && win.scQuery !== "" ? Qt.alpha(Theme.paper, 0.1) : "transparent"
+                                    }
+                                    Row {
+                                        x: 18
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: 12
+                                        IconImage {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            implicitSize: 30
+                                            source: Quickshell.iconPath(res.modelData.icon ?? "", "application-x-executable")
+                                        }
+                                        Column {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            spacing: 1
+                                            Text {
+                                                width: 400
+                                                elide: Text.ElideRight
+                                                text: res.modelData.name.toUpperCase()
+                                                color: res.cur ? Theme.on(win.tone) : Theme.paper
+                                                font {
+                                                    family: "Bebas Neue"
+                                                    pixelSize: 22
+                                                    letterSpacing: 1.5
+                                                }
+                                            }
+                                            Text {
+                                                width: 400
+                                                elide: Text.ElideRight
+                                                text: ((res.modelData.genericName || "APP") + " · CLASE " + (res.modelData.startupClass || res.modelData.id)).toUpperCase() + (res.cur ? " · ACTUAL" : "")
+                                                color: res.cur ? Theme.on(win.tone) : Theme.telemetry
+                                                font {
+                                                    family: "JetBrains Mono"
+                                                    pixelSize: 9
+                                                    bold: true
+                                                    letterSpacing: 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: win.pickEntry(res.modelData)
+                                    }
+                                }
+                            }
+                            Text {
+                                visible: win.scResults.length === 0 && !win.scShowAuto
+                                x: 18
+                                topPadding: 6
+                                bottomPadding: 6
+                                text: win.scQuery.trim() === "" ? "ESCRIBE PARA BUSCAR UNA APP" : "NINGUNA APP COINCIDE"
+                                color: Theme.telemetry
+                                font {
+                                    family: "JetBrains Mono"
+                                    pixelSize: 11
+                                    bold: true
+                                    letterSpacing: 1
+                                }
+                            }
+                            Item {
+                                width: 1
+                                height: 14
+                            }
+                        }
+                    }
                 }
 
                 // Aviso
@@ -1242,7 +1966,7 @@ PanelWindow {
                     x: 34
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 30
-                    text: "LOS CAMBIOS SE GUARDAN AL INSTANTE // ~/.local/state/velvet/settings.json"
+                    text: win.sec !== 5 ? "LOS CAMBIOS SE GUARDAN AL INSTANTE // ~/.local/state/velvet/settings.json" : win.scTab === "ws" ? "SE APLICA EN LA SIGUIENTE PULSACIÓN // ~/.config/hypr/toggles.json" : win.scTab === "kb" ? "HYPRLAND SE RECARGA AL CAMBIAR // ~/.local/state/velvet/keyboard" : "SE APLICA AL INSTANTE // ~/.local/state/velvet/settings.json"
                     color: Theme.telemetry
                     font {
                         family: "JetBrains Mono"
@@ -1293,7 +2017,7 @@ PanelWindow {
                         t: "SECCIÓN"
                     },
                     {
-                        k: "1–5",
+                        k: "1–6",
                         t: "IR A SECCIÓN"
                     },
                     {
