@@ -17,6 +17,7 @@ if [ ! -e "$hypr/hyprland.lua" ] && [ ! -e "$hypr/hyprland.conf" ]; then
     cp -r --update=none "$root/hypr/starter/." "$hypr/"
     step "apps de tu sistema → variables.lua"
     bash "$scripts/detect-apps.sh" "$hypr/variables.lua" || true
+    bash "$scripts/detect-kde.sh" "$hypr" || true
 else
     step "Hyprland ya configurado: no se toca (mira el README para integrarlo)"
 fi
