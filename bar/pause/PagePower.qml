@@ -26,7 +26,7 @@ Column {
             label: "CERRAR SESIÓN",
             meta: "",
             confirm: true,
-            cmd: "loginctl terminate-session $XDG_SESSION_ID"
+            cmd: "hyprctl dispatch 'hl.dsp.exit()'"
         },
         {
             label: "REINICIAR",
