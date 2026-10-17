@@ -719,7 +719,7 @@ Item {
             Text {
                 id: st
                 anchors.centerIn: parent
-                text: "¡BIENVENIDO ALE!"
+                text: "¡BIENVENIDO " + (Quickshell.env("USER") || "").toUpperCase() + "!"
                 color: root.ink
                 font.family: "Bebas Neue"
                 font.pixelSize: 150 * root.s

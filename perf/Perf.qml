@@ -31,6 +31,15 @@ PanelWindow {
     readonly property int panelH: 770
     readonly property int margin: 14                // separación del borde (deja ver la sombra)
     readonly property int hotH: 300
+    // ¿Hay otro monitor pegado a la derecha? Entonces el borde no frena el ratón:
+    // la zona es más ancha y hay que pararse un momento en ella para abrir.
+    readonly property bool sharedEdge: {
+        const s = win.screen;
+        if (!s)
+            return false;
+        const right = s.x + s.width;
+        return Quickshell.screens.some(o => o !== s && Math.abs(o.x - right) <= 2 && o.y < s.y + s.height && o.y + o.height > s.y);
+    }
     implicitWidth: panelW + margin + 12
     implicitHeight: panelH + 12
 
@@ -72,7 +81,7 @@ PanelWindow {
     }
     Timer {
         id: openT
-        interval: 150
+        interval: win.sharedEdge ? 350 : 150
         onTriggered: win.open = true
     }
     Timer {
@@ -164,7 +173,7 @@ PanelWindow {
         id: hot
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        width: 4
+        width: win.sharedEdge ? 24 : 4
         height: win.hotH
         HoverHandler {
             id: hotHover
