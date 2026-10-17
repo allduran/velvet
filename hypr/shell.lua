@@ -48,7 +48,31 @@ if kf then
     kf:close()
 end
 
-local theme = modes[m] or modes.general
+-- Look del modo activo (lo escribe velvet en Administrar modos / al cambiar de modo):
+-- mode, style (paleta) y huecos/efectos/vrr. Solo cuenta si es del modo que está puesto.
+local look = {}
+local lf = io.open(os.getenv("HOME") .. "/.local/state/velvet/look", "r")
+if lf then
+    for line in lf:lines() do
+        local k, v = line:match("^(%w+)=(.*)$")
+        if k then look[k] = v end
+    end
+    lf:close()
+end
+local useLook = m ~= nil and look.mode == m
+
+-- Base: la paleta del estilo (modos propios) o la del modo de serie
+local base = (useLook and modes[look.style]) or modes[m] or modes.general
+local theme = {}
+for k, v in pairs(base) do theme[k] = v end
+if useLook then
+    theme.gapsIn = tonumber(look.gapsIn) or theme.gapsIn
+    theme.gapsOut = tonumber(look.gapsOut) or theme.gapsOut
+    theme.animations = look.animations == "1"
+    theme.blur = look.blur == "1"
+    theme.vrr = tonumber(look.vrr) or theme.vrr
+end
+
 theme.kbLayout = (kb.layouts and kb.layouts ~= "") and kb.layouts or nil   -- nil = el de input.lua
 theme.kbOptions = kb.options
 return { theme = theme }

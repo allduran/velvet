@@ -20,8 +20,13 @@ Singleton {
     property alias kbLayouts: store.kbLayouts            // "us,es" ("" = el que tenga Hyprland)
     property alias kbToggle: store.kbToggle              // xkb: grp:alt_shift_toggle…
 
+    // ── Modos (Modes.qml) ──
+    property alias customModes: store.customModes        // [{ id, name, style }]
+    property alias hiddenModes: store.hiddenModes        // ids de los modos de serie ocultos
+    property alias modeLook: store.modeLook              // { id: { gaps, anim, blur, vrr } } (Hyprland)
+
     // ── Por modo (siempre los del modo activo) ──
-    readonly property var m: store.perMode[Theme.mode] ?? defaults[Theme.mode]
+    readonly property var m: forMode(Theme.mode)
     readonly property string profile: m.profile ?? "balanced"   // power-saver | balanced | performance
     readonly property int lockMin: m.lock ?? 5                   // 0 = nunca
     readonly property int dpmsMin: m.dpms ?? 10                  // 0 = nunca
@@ -31,14 +36,39 @@ Singleton {
     readonly property bool gamemode: m.gamemode ?? false
     readonly property var apps: m.apps ?? []                     // [{ id, ws }]
 
+    // Ajustes de cualquier modo: los guardados o, si no hay, los de su estilo
+    function forMode(md) {
+        return store.perMode[md] ?? defaults[Modes.styleOf(md)];
+    }
+
     // Cambia un valor del modo activo (o de otro modo si se indica)
     function setForMode(key, value, mode) {
         const md = mode ?? Theme.mode;
         const p = JSON.parse(JSON.stringify(store.perMode));
         if (!p[md])
-            p[md] = JSON.parse(JSON.stringify(defaults[md]));
+            p[md] = JSON.parse(JSON.stringify(forMode(md)));
         p[md][key] = value;
         store.perMode = p;
+    }
+
+    // Cambia varios valores de un modo de golpe (formulario de Administrar modos)
+    function setModeSettings(md, values) {
+        const p = JSON.parse(JSON.stringify(store.perMode));
+        p[md] = Object.assign(JSON.parse(JSON.stringify(forMode(md))), values);
+        store.perMode = p;
+    }
+
+    // Borra todo lo guardado de un modo propio que se elimina
+    function forgetMode(md) {
+        const p = JSON.parse(JSON.stringify(store.perMode));
+        delete p[md];
+        store.perMode = p;
+        const pi = JSON.parse(JSON.stringify(store.pins));
+        delete pi[md];
+        store.pins = pi;
+        const l = JSON.parse(JSON.stringify(store.modeLook));
+        delete l[md];
+        store.modeLook = l;
     }
 
     readonly property var defaults: ({
@@ -150,6 +180,9 @@ Singleton {
             property string kbLayouts: ""
             property string kbToggle: "grp:alt_shift_toggle"
             property var perMode: ({})
+            property var customModes: []
+            property var hiddenModes: []
+            property var modeLook: ({})
         }
     }
 }

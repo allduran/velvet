@@ -6,7 +6,8 @@ import QtQuick
 Singleton {
     id: root
 
-    readonly property var modes: ["general", "dev", "art", "game"]
+    // Ids de los modos del selector (la lista completa está en Modes.qml)
+    readonly property var modes: Modes.shown.map(m => m.id)
     // Modo activo. Se guarda en ~/.local/state/velvet/mode (también lo lee Hyprland: scheme/active.lua)
     property string mode: "general"
 
@@ -35,11 +36,13 @@ Singleton {
             }
         })
 
-    readonly property var trio: palettes[mode].trio
+    // Estilo del modo activo (general/dev/art/game): de él salen los colores
+    readonly property string style: Modes.styleOf(mode)
+    readonly property var trio: palettes[style].trio
     readonly property color accent: trio[0]
     readonly property color accent2: trio[1]
     readonly property color accent3: trio[2]
-    readonly property color telemetry: palettes[mode].telemetry
+    readonly property color telemetry: palettes[style].telemetry
 
     // Color por posición: va rotando entre los tres
     function at(i) {
@@ -55,10 +58,11 @@ Singleton {
     // Cambia de modo: colores, fondo y favoritas siguen solos a `mode`.
     // Hyprland relee el archivo al recargar (bordes, sombra, grupos).
     function setMode(m) {
-        if (!modes.includes(m) || m === mode)
+        if (!Modes.exists(m) || m === mode)
             return;
         mode = m;
         modeFile.setText(m + "\n");
+        Modes.writeLook();
         hyprReload.restart();
     }
 
@@ -67,8 +71,9 @@ Singleton {
         path: Quickshell.env("HOME") + "/.local/state/velvet/mode"
         printErrors: false
         onLoaded: {
+            // Aún puede no estar cargada la lista de modos propios: basta con que parezca un id
             const m = text().trim();
-            if (root.modes.includes(m))
+            if (/^[a-z0-9]+$/.test(m))
                 root.mode = m;
         }
     }

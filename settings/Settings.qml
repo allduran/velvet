@@ -60,7 +60,7 @@ PanelWindow {
     // Subtítulo de la sección; las que van por modo dicen de cuál
     function secSub(i) {
         const s = sections[i];
-        return s.sub + (s.perMode ? " · MODO " + Theme.mode.toUpperCase() : "");
+        return s.sub + (s.perMode ? " · MODO " + Modes.nameOf(Theme.mode) : "");
     }
 
     // ── Modo: apps al entrar ──
@@ -392,7 +392,7 @@ PanelWindow {
                 y: 46
                 spacing: 14
                 Text {
-                    text: "VELVET // CONFIGURACIÓN · MODE." + Theme.mode.toUpperCase()
+                    text: "VELVET // CONFIGURACIÓN · MODE." + Modes.nameOf(Theme.mode)
                     color: Theme.paper
                     opacity: 0.85
                     font {
@@ -765,7 +765,7 @@ PanelWindow {
                         }
                         SetRow {
                             label: "LUZ NOCTURNA"
-                            desc: "HYPRSUNSET · POR MODO (" + Theme.mode.toUpperCase() + ")"
+                            desc: "HYPRSUNSET · POR MODO (" + Modes.nameOf(Theme.mode) + ")"
                             Choice {
                                 tone: win.tone
                                 options: [
@@ -793,12 +793,12 @@ PanelWindow {
                         width: parent.width
                         SetRow {
                             label: "FAVORITAS"
-                            desc: "TECLAS 1–4 DEL LANZADOR, POR MODO"
+                            desc: "TECLAS 1–4 DEL LAUNCHER, POR MODO"
                             Choice {
                                 tone: win.tone
-                                options: ["general", "dev", "art", "game"].map(m => ({
-                                            label: m.toUpperCase(),
-                                            value: m
+                                options: Modes.shown.map(m => ({
+                                            label: m.name,
+                                            value: m.id
                                         }))
                                 value: win.favMode
                                 onPicked: v => {

@@ -113,7 +113,7 @@ Item {
         color: Theme.paper
         font {
             family: "Bebas Neue"
-            pixelSize: root.name.length > 5 ? 76 : 92
+            pixelSize: root.name.length > 7 ? 60 : root.name.length > 5 ? 76 : 92
             letterSpacing: 3
         }
         lineHeight: 0.85

@@ -4,6 +4,7 @@ import Quickshell.Hyprland
 import QtQuick
 import "../config"
 import "../services"
+import "../clip"
 
 // Selector de modo: cuatro cartas en abanico.
 // qs -c velvet ipc call mode toggle
@@ -23,33 +24,41 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
     color: "transparent"
 
-    readonly property var info: ({
-            general: {
-                name: "GENERAL",
-                persona: "P3 · P4 · P5",
-                tag: "TODO A LA VEZ · LA TRÍADA"
-            },
-            dev: {
-                name: "DEV",
-                persona: "PERSONA 3",
-                tag: "CÓDIGO · UNITY · DEVLOG"
-            },
-            art: {
-                name: "ART",
-                persona: "PERSONA 4",
-                tag: "PINTURA · 3D · VÍDEO"
-            },
-            game: {
-                name: "GAME",
-                persona: "PERSONA 5",
-                tag: "STEAM · HEROIC · CHAT"
-            }
-        })
+    // Modos del selector (Modes.shown) y página: select | manage | edit
+    readonly property var list: Modes.shown
+    readonly property int n: list.length
+    property string page: "select"
 
     property int sel: 0
-    readonly property string selMode: Theme.modes[sel]
-    readonly property var selTrio: Theme.palettes[selMode].trio
+    readonly property string selMode: list[Math.min(sel, n - 1)]?.id ?? "general"
+    // El fondo se tiñe con el estilo de lo que se está mirando en cada página
+    readonly property string washStyle: page === "edit" ? editor.fStyle : page === "manage" ? manage.focusStyle : Modes.styleOf(selMode)
+    readonly property var selPal: Theme.palettes[washStyle]
+    readonly property var selTrio: selPal.trio
+
     property bool confirming: false
+
+    // Avisos (Administrar / editar)
+    property string flash: ""
+    function say(t) {
+        flash = t;
+        flashT.restart();
+    }
+    Timer {
+        id: flashT
+        interval: 1600
+        onTriggered: win.flash = ""
+    }
+    onPageChanged: {
+        flash = "";
+        if (page === "manage")
+            manage.sel = Math.max(0, Modes.all.findIndex(m => m.id === (editId || selMode)));
+        if (page === "edit")
+            editor.load(editId);
+        else
+            // pone el foco en el nombre si es un modo propio
+            keys.forceActiveFocus();
+    }
 
     function findApp(q) {
         const apps = DesktopEntries.applications.values;
@@ -57,23 +66,89 @@ PanelWindow {
         return apps.find(e => e.id.toLowerCase() === k) ?? apps.find(e => e.name.toLowerCase() === k) ?? apps.find(e => e.id.toLowerCase().includes(k)) ?? apps.find(e => e.name.toLowerCase().includes(k)) ?? null;
     }
     function favNames(m) {
-        return (Config.pins[m] ?? []).map(id => (findApp(id)?.name ?? id).toUpperCase());
+        return (Config.pins[m] ?? Config.pins.general ?? []).map(id => (findApp(id)?.name ?? id).toUpperCase());
     }
 
     function close() {
         grab.active = false;
         Ui.modeScreen = "";
     }
+
+    // Reparto de las cartas: con 4 quedan como antes; con 5–6 se encogen
+    readonly property real step: Math.min(370, 1480 / Math.max(1, n))
+    readonly property real cardScale: Math.min(1, (step - 20) / 350)
+
+    // Cabecera y teclas de cada página
+    readonly property string title1: page === "select" ? "ELIGE TU" : page === "manage" ? "TUS" : (editId ? "EDITAR" : "NUEVO")
+    readonly property string title2: page === "select" ? "MODO" : page === "manage" ? "MODOS" : (editId ? Modes.nameOf(editId) : "MODO")
+    property string editId: ""          // modo que se edita ("" = nuevo)
+    readonly property var hints: ({
+            select: [
+                {
+                    k: "← →",
+                    t: "ELEGIR"
+                },
+                {
+                    k: "1–" + n,
+                    t: "SALTO DIRECTO"
+                },
+                {
+                    k: "ENTER",
+                    t: "CAMBIAR DE MODO"
+                },
+                {
+                    k: "M",
+                    t: "ADMINISTRAR"
+                },
+                {
+                    k: "ESC",
+                    t: "CANCELAR"
+                }
+            ],
+            manage: [
+                {
+                    k: "↑↓",
+                    t: "MODO"
+                },
+                {
+                    k: "E",
+                    t: "EDITAR"
+                },
+                {
+                    k: "H",
+                    t: "OCULTAR / BORRAR"
+                },
+                {
+                    k: "N",
+                    t: "NUEVO"
+                },
+                {
+                    k: "ESC",
+                    t: "VOLVER"
+                }
+            ],
+            edit: [
+                {
+                    k: "ENTER · CTRL + S",
+                    t: "GUARDAR"
+                },
+                {
+                    k: "ESC",
+                    t: "CANCELAR"
+                }
+            ]
+        })
+
     function confirm(i) {
         if (confirming)
             return;
         sel = i;
-        if (Theme.modes[i] === Theme.mode) {
+        if (list[i].id === Theme.mode) {
             close();
             return;
         }
         if (!Config.animations) {
-            Theme.setMode(Theme.modes[i]);
+            Theme.setMode(list[i].id);
             close();
             return;
         }
@@ -87,7 +162,8 @@ PanelWindow {
             confirming = false;
             return;
         }
-        sel = Math.max(0, Theme.modes.indexOf(Theme.mode));
+        page = "select";
+        sel = Math.max(0, list.findIndex(m => m.id === Theme.mode));
         focusT.restart();
     }
     HyprlandFocusGrab {
@@ -111,16 +187,41 @@ PanelWindow {
         Keys.onPressed: e => {
             if (win.confirming)
                 return;
-            if (e.key === Qt.Key_Escape)
+            if (win.page === "manage") {
+                const m = manage.rows[manage.sel];
+                if (e.key === Qt.Key_Escape)
+                    win.page = "select";
+                else if (e.key === Qt.Key_Up)
+                    manage.move(-1);
+                else if (e.key === Qt.Key_Down)
+                    manage.move(1);
+                else if (e.key === Qt.Key_E || e.key === Qt.Key_Return || e.key === Qt.Key_Enter)
+                    manage.edit(m.id);
+                else if (e.key === Qt.Key_H || e.key === Qt.Key_Delete)
+                    manage.toggle(m);
+                else if (e.key === Qt.Key_N)
+                    manage.newMode();
+                else
+                    return;
+            } else if (win.page === "edit") {
+                if (e.key === Qt.Key_Escape)
+                    win.page = "manage";
+                else if (e.key === Qt.Key_Return || e.key === Qt.Key_Enter || (e.key === Qt.Key_S && (e.modifiers & Qt.ControlModifier)))
+                    editor.save();
+                else
+                    return;
+            } else if (e.key === Qt.Key_Escape)
                 win.close();
             else if (e.key === Qt.Key_Left)
-                win.sel = (win.sel + 3) % 4;
+                win.sel = (win.sel + win.n - 1) % win.n;
             else if (e.key === Qt.Key_Right)
-                win.sel = (win.sel + 1) % 4;
-            else if (e.key >= Qt.Key_1 && e.key <= Qt.Key_4)
+                win.sel = (win.sel + 1) % win.n;
+            else if (e.key >= Qt.Key_1 && e.key < Qt.Key_1 + win.n)
                 win.sel = e.key - Qt.Key_1;
             else if (e.key === Qt.Key_Return || e.key === Qt.Key_Enter)
                 win.confirm(win.sel);
+            else if (e.key === Qt.Key_M)
+                win.page = "manage";
             else
                 return;
             e.accepted = true;
@@ -199,8 +300,8 @@ PanelWindow {
             y: 44
             spacing: 8
             Text {
-                text: "VELVET // CAMBIO DE MODO · ACTUAL: MODE." + Theme.mode.toUpperCase()
-                color: Theme.palettes[win.selMode].telemetry
+                text: "VELVET // CAMBIO DE MODO" + (win.page === "select" ? " · ACTUAL: MODE." + Modes.nameOf(Theme.mode) : " › ADMINISTRAR" + (win.page === "edit" ? " › " + win.title2 : ""))
+                color: win.selPal.telemetry
                 font {
                     family: "JetBrains Mono"
                     pixelSize: 10
@@ -211,7 +312,7 @@ PanelWindow {
             Row {
                 spacing: 18
                 Text {
-                    text: "ELIGE TU"
+                    text: win.title1
                     color: Theme.paper
                     font {
                         family: "Bebas Neue"
@@ -237,7 +338,7 @@ PanelWindow {
                     Text {
                         id: modoT
                         anchors.centerIn: parent
-                        text: "MODO"
+                        text: win.title2
                         color: Theme.on(win.selTrio[0])
                         font {
                             family: "Bebas Neue"
@@ -250,54 +351,114 @@ PanelWindow {
         }
 
         // Cartas en abanico
-        Repeater {
-            model: Theme.modes
-            ModeCard {
-                id: card
-                required property string modelData
-                required property int index
-                readonly property bool on: win.sel === index
-                n: index + 1
-                name: win.info[modelData].name
-                persona: win.info[modelData].persona
-                tag: win.info[modelData].tag
-                trio: Theme.palettes[modelData].trio
-                tele: Theme.palettes[modelData].telemetry
-                wallpaper: Wallpapers.currentFor(modelData)
-                favs: win.favNames(modelData)
-                active: on
-                current: modelData === Theme.mode
+        Item {
+            anchors.fill: parent
+            visible: win.page === "select"
 
-                x: [70, 440, 810, 1180][index]
-                y: 200 + (on ? 0 : 30)
-                z: on ? 5 : 1
-                rotation: on ? -1 : [-5, -2, 2, 5][index]
-                scale: on ? 1.08 : 0.94
-                opacity: on ? 1 : 0.62
-                Behavior on y {
-                    enabled: Config.animations
-                    NumberAnimation {
-                        duration: 220
-                        easing.type: Easing.OutBack
-                    }
-                }
-                Behavior on scale {
-                    enabled: Config.animations
-                    NumberAnimation {
-                        duration: 220
-                        easing.type: Easing.OutBack
-                    }
-                }
-                Behavior on rotation {
-                    enabled: Config.animations
-                    NumberAnimation {
-                        duration: 200
-                    }
-                }
+            Repeater {
+                model: win.list
+                ModeCard {
+                    id: card
+                    required property var modelData
+                    required property int index
+                    readonly property bool on: win.sel === index
+                    readonly property var pal: Theme.palettes[modelData.style]
+                    n: index + 1
+                    name: modelData.name
+                    persona: Modes.styleLabel(modelData.style)
+                    tag: modelData.tag
+                    trio: pal.trio
+                    tele: pal.telemetry
+                    wallpaper: Wallpapers.currentFor(modelData.id)
+                    favs: win.favNames(modelData.id)
+                    active: on
+                    current: modelData.id === Theme.mode
 
-                onPicked: win.sel = index
-                onConfirmed: win.confirm(index)
+                    x: 800 + (index - (win.n - 1) / 2) * win.step - width / 2
+                    y: 200 + (on ? 0 : 30)
+                    z: on ? 5 : 1
+                    rotation: on ? -1 : (win.n > 1 ? (index - (win.n - 1) / 2) / ((win.n - 1) / 2) * 5 : 0)
+                    scale: (on ? 1.08 : 0.94) * win.cardScale
+                    opacity: on ? 1 : 0.62
+                    Behavior on y {
+                        enabled: Config.animations
+                        NumberAnimation {
+                            duration: 220
+                            easing.type: Easing.OutBack
+                        }
+                    }
+                    Behavior on scale {
+                        enabled: Config.animations
+                        NumberAnimation {
+                            duration: 220
+                            easing.type: Easing.OutBack
+                        }
+                    }
+                    Behavior on rotation {
+                        enabled: Config.animations
+                        NumberAnimation {
+                            duration: 200
+                        }
+                    }
+
+                    onPicked: win.sel = index
+                    onConfirmed: win.confirm(index)
+                }
             }
+
+            // Acceso a Administrar modos (también con M)
+            SkewChip {
+                x: 1600 - 64 - width
+                y: 84
+                height: 52
+                label: "M · ADMINISTRAR MODOS"
+                fill: Theme.ink
+                fg: Theme.paper
+                border: Theme.paper
+                shadow: win.selTrio[0]
+                size: 28
+                padding: 24
+                onClicked: win.page = "manage"
+            }
+        }
+
+        // Administrar modos
+        ModeManage {
+            id: manage
+            visible: win.page === "manage"
+            onEdit: id => {
+                win.editId = id;
+                win.page = "edit";
+            }
+            onBack: win.page = "select"
+            onSay: t => win.say(t)
+        }
+
+        // Crear / editar modo
+        ModeEdit {
+            id: editor
+            visible: win.page === "edit"
+            favs: win.favNames(modeId || "general")
+            onDone: id => {
+                win.editId = id;
+                win.page = "manage";
+            }
+            onCancel: win.page = "manage"
+            onSay: t => win.say(t)
+        }
+
+        // Aviso
+        SkewChip {
+            visible: win.flash !== ""
+            x: 1600 - 64 - width
+            y: 900 - 84 - height
+            height: 48
+            label: "▶▶ " + win.flash
+            fill: win.selTrio[0]
+            fg: Theme.on(win.selTrio[0])
+            shadow: Theme.paper
+            size: 26
+            padding: 24
         }
 
         // Barra de teclas
@@ -306,24 +467,7 @@ PanelWindow {
             y: 900 - 36 - height
             spacing: 28
             Repeater {
-                model: [
-                    {
-                        k: "← →",
-                        t: "ELEGIR"
-                    },
-                    {
-                        k: "1–4",
-                        t: "SALTO DIRECTO"
-                    },
-                    {
-                        k: "ENTER",
-                        t: "CAMBIAR DE MODO"
-                    },
-                    {
-                        k: "ESC",
-                        t: "CANCELAR"
-                    }
-                ]
+                model: win.hints[win.page]
                 Row {
                     id: hint
                     required property var modelData
@@ -384,7 +528,7 @@ PanelWindow {
                 color: win.selTrio[0]
                 Text {
                     anchors.centerIn: parent
-                    text: "MODO " + win.info[win.selMode].name
+                    text: "MODO " + Modes.nameOf(win.selMode)
                     color: Theme.on(win.selTrio[0])
                     style: Text.Raised
                     styleColor: Theme.ink

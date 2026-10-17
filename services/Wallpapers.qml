@@ -24,13 +24,18 @@ Singleton {
 
     // filter: "all" | "red" | "blue" | "yellow" (solo cuenta en general)
     function forMode(mode, filter) {
-        const c = modeColor[mode] || (filter && filter !== "all" ? filter : "");
+        const c = modeColor[Modes.styleOf(mode)] || (filter && filter !== "all" ? filter : "");
         return c ? all.filter(w => w.color === c) : all;
     }
 
     // Fondo efectivo de cualquier modo (el guardado si es válido, si no el primero permitido)
+    readonly property var builtinIds: ["general", "dev", "art", "game"]
+    function saved(m) {
+        return builtinIds.includes(m) ? store[m] : (store.custom[m] ?? "");
+    }
+
     function currentFor(m) {
-        const saved = store[m];
+        const saved = root.saved(m);
         const allowed = forMode(m, "all");
         if (allowed.some(w => w.path === saved))
             return saved;
@@ -38,16 +43,16 @@ Singleton {
     }
 
     // Fondo efectivo del modo actual: el guardado si es válido, si no el primero permitido
-    readonly property string current: {
-        const saved = store[Theme.mode];
-        const allowed = forMode(Theme.mode, "all");
-        if (allowed.some(w => w.path === saved))
-            return saved;
-        return allowed.length ? allowed[0].path : "";
-    }
+    readonly property string current: currentFor(Theme.mode)
 
     function set(path) {
-        store[Theme.mode] = path;   // JsonAdapter → se escribe solo
+        if (builtinIds.includes(Theme.mode)) {
+            store[Theme.mode] = path;   // JsonAdapter → se escribe solo
+        } else {
+            const c = JSON.parse(JSON.stringify(store.custom));
+            c[Theme.mode] = path;
+            store.custom = c;
+        }
     }
 
     function refresh() {
@@ -96,6 +101,7 @@ Singleton {
             property string dev: ""
             property string art: ""
             property string game: ""
+            property var custom: ({})   // modos propios: { id: ruta }
         }
     }
 }

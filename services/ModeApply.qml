@@ -37,6 +37,14 @@ Singleton {
         }
     }
 
+    // Se editó el modo activo en Administrar modos: se vuelve a aplicar (sin abrir apps)
+    Connections {
+        target: Modes
+        function onActiveEdited() {
+            root.applySystem();
+        }
+    }
+
     // Al arrancar velvet: lo de sistema, sin abrir apps
     Timer {
         running: true
