@@ -45,7 +45,7 @@ wallpapers = "~/Pictures/Wallpapers"   # wallpaper-<red|blue|yellow>-<n>.<jpg|jp
 
 # Lo que velvet escribe en state (no va a dotfiles)
 [state]
-mode = "mode"                      # modo activo: general | dev | art | game (también lo lee Hyprland)
+mode = "mode"                      # modo activo (id de serie o propio; también lo lee Hyprland)
 settings = "settings.json"         # Ajustes (globales + por modo)
 launcher = "launcher.json"         # rango de uso del lanzador
 foot = "foot-colors.ini"           # cursor + selección del modo (lo genera scripts/term.sh)

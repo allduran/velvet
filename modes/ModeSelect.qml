@@ -6,7 +6,7 @@ import "../config"
 import "../services"
 import "../clip"
 
-// Selector de modo: cuatro cartas en abanico.
+// Selector de modo: de 1 a 6 cartas en abanico + Administrar modos.
 // qs -c velvet ipc call mode toggle
 PanelWindow {
     id: win

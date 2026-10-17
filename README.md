@@ -1,7 +1,7 @@
 # velvet
 
 Shell de [Quickshell](https://quickshell.org) para Hyprland con estética Persona (P3 · P4 · P5)
-y cuatro **modos** — GENERAL, DEV, ART y GAME — que cambian colores, fondo, favoritos del lanzador
+y **modos** — GENERAL, DEV, ART, GAME y los que crees tú — que cambian colores, fondo, favoritos del lanzador
 y la configuración del sistema de golpe.
 
 ## Qué incluye
@@ -13,6 +13,7 @@ y la configuración del sistema de golpe.
   - huecos, animaciones, blur y VRR de Hyprland;
   - colores de la terminal (foot) y de fastfetch;
   - apps que se abren al entrar, cada una en su workspace.
+  - **Administrar modos** (`SUPER + TAB` → `M`): oculta los de serie o crea los tuyos (hasta 6 en el selector), con estilo PERSONAS, PERSONA 3, PERSONA 4 o PERSONA 5 y sus propios ajustes.
 - **Ajustes** (`SUPER + I`): todo lo anterior por modo, sin tocar archivos.
 - Selector de fondos, capturas y grabación, portapapeles (cliphist) y selector de emojis.
 

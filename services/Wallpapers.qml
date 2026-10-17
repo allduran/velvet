@@ -11,7 +11,7 @@ Singleton {
 
     readonly property string dir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
 
-    // Color permitido por modo ("" = todos). Sale de trio[0] de cada paleta en Theme.
+    // Color permitido por ESTILO ("" = todos). Sale de trio[0] de cada paleta en Theme.
     readonly property var modeColor: ({
             general: "",
             dev: "blue",
