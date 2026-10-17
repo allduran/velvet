@@ -34,7 +34,7 @@ PanelWindow {
             sub: "FONDO · PANELES · MOVIMIENTO"
         },
         {
-            name: "LANZADOR",
+            name: "LAUNCHER",
             sub: "FAVORITAS POR MODO · RANGO"
         },
         {
@@ -438,8 +438,8 @@ PanelWindow {
             // Menú de secciones
             Column {
                 x: 44
-                y: 214
-                spacing: 8
+                y: 190
+                spacing: 4
                 Repeater {
                     model: win.sections
                     MenuEntry {

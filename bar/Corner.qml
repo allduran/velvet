@@ -475,7 +475,7 @@ PanelWindow {
                         id: unreadT
                         anchors.centerIn: parent
                         text: Notifs.unread + " AVISOS"
-                        color: Theme.paper
+                        color: Theme.on(Theme.accent)
                         font {
                             family: "JetBrains Mono"
                             pixelSize: 10
@@ -496,7 +496,7 @@ PanelWindow {
                         id: warn
                         anchors.centerIn: parent
                         text: "BAT " + Math.round(win.pct * 100) + "%"
-                        color: Theme.paper
+                        color: Theme.on(Theme.accent)
                         font {
                             family: "JetBrains Mono"
                             pixelSize: 10
