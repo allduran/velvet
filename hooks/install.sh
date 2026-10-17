@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Instalación de velvet: lo que no son paquetes (los instala `duran install` desde shell.toml).
-# Idempotente. La config de Hyprland sí se sustituye (avisando y con copia): scripts/hypr-starter.sh
+# Idempotente. La config de Hyprland sí se sustituye (avisando y con copia): duran hypr init
 set -euo pipefail
 
 step() { printf '  \e[1;34m·\e[0m %s\n' "$*"; }
@@ -11,8 +11,7 @@ state="$HOME/.local/state/velvet"
 hypr="$HOME/.config/hypr"
 
 # Hyprland: la config de velvet (avisa y guarda la que hubiera antes)
-bash "$scripts/hypr-starter.sh"
-[ -e "$hypr/hyprsunset.conf" ] || cp "$root/hypr/starter/hyprsunset.conf" "$hypr/"
+duran hypr init || printf '  \e[1;33m!\e[0m %s\n' "actualiza duran: falta 'duran hypr init'"
 
 # Brillo de monitores externos (ddcutil)
 step "módulo i2c-dev + grupo i2c"
