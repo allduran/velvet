@@ -163,7 +163,7 @@ local function deep_match(actual, expected)
         end
         return true
     else
-        return actual and string.find(tostring(actual), tostring(expected), 1, true)
+        return actual and string.find(tostring(actual):lower(), tostring(expected):lower(), 1, true)
     end
 end
 

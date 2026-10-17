@@ -260,7 +260,7 @@ Singleton {
             name: e.name,
             icon: e.icon ?? "",
             cls: term ? e.id : (e.startupClass || e.id),
-            cmd: term ? ["foot", "-a", e.id, "-e"].concat(e.command) : e.command
+            cmd: (term ? ["foot", "-a", e.id, "-e"].concat(e.command) : e.command).filter(a => !/=$/.test(a))   // quita "--uri=" y similares (restos de %U)
         };
     }
 

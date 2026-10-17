@@ -49,6 +49,16 @@ Scope {
         showOsd("vol");
     }
 
+    // Teclas de volumen: por wpctl (mezclador de WirePlumber), que respeta el volumen
+    // por hardware de cada dispositivo. Escribir sink.audio.volume daba pasos dobles
+    // en algunos (Poly BT700). -l 1 = tope del 100 %.
+    function stepVol(sign) {
+        if (!sink)
+            return;
+        Quickshell.execDetached(["sh", "-c", "wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ " + Math.round(volStep * 100) + "%" + sign]);
+        showOsd("vol");
+    }
+
     // ── Reproductor (el que suena, si no el último usado) ──
     property MprisPlayer player: null
     function pick() {
@@ -76,10 +86,10 @@ Scope {
     IpcHandler {
         target: "osd"
         function volumeUp(): void {
-            root.setVol(root.vol + root.volStep);
+            root.stepVol("+");
         }
         function volumeDown(): void {
-            root.setVol(root.vol - root.volStep);
+            root.stepVol("-");
         }
         function mute(): void {
             if (!root.sink)
