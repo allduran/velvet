@@ -4,7 +4,7 @@
 [shell]
 name = "velvet"
 description = "Shell estilo Persona (P3 · P4 · P5) para Hyprland con modos general / dev / art / game"
-version = "0.2.0"
+version = "0.3.0"
 license = "GPL-3.0-or-later"
 engine = "quickshell"
 start = "qs -c velvet -d"
@@ -22,7 +22,7 @@ repo = [
   "cliphist", "wtype", "hyprpicker", "foot", "nwg-displays",                        # portapapeles, emojis, color, terminal
   "ttf-jetbrains-mono", "noto-fonts-emoji",
 ]
-aur = []
+aur = ["todoist-appimage"]                                         # Todoist para SUPER + R
 
 [fonts]
 families = ["Bebas Neue", "Montserrat", "JetBrains Mono"]
@@ -50,11 +50,14 @@ settings = "settings.json"         # Ajustes (globales + por modo)
 launcher = "launcher.json"         # rango de uso del lanzador
 foot = "foot-colors.ini"           # cursor + selección del modo (lo genera scripts/term.sh)
 fastfetch = "fastfetch.jsonc"      # fastfetch con el trío del modo (scripts/term.sh)
+look = "look"                      # huecos/efectos/VRR del modo activo (lo lee hypr/shell.lua)
 
 [modes]
-list = ["general", "dev", "art", "game"]
-palettes = "config/Theme.qml"                 # trío de cada modo en QML
-apply = "services/ModeApply.qml"              # energía, hypridle, DND, luz nocturna, gamemode, apps, terminal
+builtin = ["general", "dev", "art", "game"]   # se pueden ocultar; los propios se crean en el selector (SUPER + TAB → M)
+styles = { general = "PERSONAS", dev = "PERSONA 3", art = "PERSONA 4", game = "PERSONA 5" }
+list = "config/Modes.qml"
+palettes = "config/Theme.qml"
+apply = "services/ModeApply.qml"
 scripts = ["scripts/idle.sh", "scripts/term.sh"]
 
 [pam]
