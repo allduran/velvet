@@ -79,7 +79,9 @@ Scope {
         id: typeT
         property string text: ""
         interval: 150
-        onTriggered: Quickshell.execDetached(["sh", Quickshell.shellDir + "/scripts/emoji-type.sh", text])
+        // Se pega desde el portapapeles (escribirlo con wtype rompe los emojis compuestos en apps web).
+        // En terminales el atajo de pegar es Ctrl+Shift+V.
+        onTriggered: Quickshell.execDetached(["sh", "-c", "printf '%s' \"$1\" | wl-copy || exit; sleep 0.1; " + "case \"$(hyprctl activewindow -j | jq -r .class)\" in " + "foot|kitty|Alacritty|org.wezfurlong.wezterm|com.mitchellh.ghostty|org.kde.konsole) wtype -M ctrl -M shift v -m shift -m ctrl ;; " + "*) wtype -M ctrl v -m ctrl ;; esac", "sh", text])
     }
 
     readonly property var cats: [["recent", "RECIENTES"], [0, "CARAS"], [1, "GENTE"], [3, "NATURALEZA"], [4, "COMIDA"], [6, "ACTIVIDADES"], [5, "VIAJES"], [7, "OBJETOS"], [8, "SÍMBOLOS"], [9, "BANDERAS"]]

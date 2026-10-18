@@ -35,7 +35,7 @@ Singleton {
     }
     // Copia y pega con Ctrl+V en la ventana que recupera el foco
     function paste(entry) {
-        Quickshell.execDetached(["sh", "-c", "cliphist decode \"$1\" | wl-copy && sleep 0.15 && wtype -M ctrl v -m ctrl", "sh", entry.id]);
+        Quickshell.execDetached(["sh", "-c", "cliphist decode \"$1\" | wl-copy && sleep 0.15 && case \"$(hyprctl activewindow -j | jq -r .class)\" in " + "foot|kitty|Alacritty|org.wezfurlong.wezterm|com.mitchellh.ghostty|org.kde.konsole) wtype -M ctrl -M shift v -m shift -m ctrl ;; " + "*) wtype -M ctrl v -m ctrl ;; esac", "sh", entry.id]);
     }
     function remove(entry) {
         del.command = ["sh", "-c", "printf '%s' \"$1\" | cliphist delete", "sh", entry.line];
