@@ -79,7 +79,7 @@ Scope {
         id: typeT
         property string text: ""
         interval: 150
-        onTriggered: Quickshell.execDetached(["wtype", text])
+        onTriggered: Quickshell.execDetached(["sh", Quickshell.shellDir + "/scripts/emoji-type.sh", text])
     }
 
     readonly property var cats: [["recent", "RECIENTES"], [0, "CARAS"], [1, "GENTE"], [3, "NATURALEZA"], [4, "COMIDA"], [6, "ACTIVIDADES"], [5, "VIAJES"], [7, "OBJETOS"], [8, "SÍMBOLOS"], [9, "BANDERAS"]]
