@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import Quickshell.Wayland
 import QtQuick
 import "config"
 import "bar"
@@ -96,6 +97,9 @@ Scope {
     IpcHandler {
         target: "launcher"
         function toggle(): void {
+            // Jugando (modo con gamemode + ventana a pantalla completa) SUPER no abre el lanzador
+            if (Ui.launcherScreen === "" && Config.gamemode && ToplevelManager.activeToplevel?.fullscreen)
+                return;
             Ui.launcherScreen = Ui.launcherScreen !== "" ? "" : (Hyprland.focusedMonitor?.name ?? "");
         }
     }
