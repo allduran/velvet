@@ -100,13 +100,7 @@ Singleton {
             id: "todo",
             name: "TAREAS",
             combo: "SUPER + R",
-            builtin: [
-                {
-                    key: "todoist",
-                    name: "Todoist",
-                    cls: "todoist"
-                }
-            ]
+            builtin: []
         },
         {
             id: "sysmon",

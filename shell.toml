@@ -22,7 +22,7 @@ repo = [
   "cliphist", "wtype", "hyprpicker", "foot", "nwg-displays",                        # portapapeles, emojis, color, terminal
   "ttf-jetbrains-mono", "noto-fonts-emoji",
 ]
-aur = ["todoist-appimage"]                                         # Todoist para SUPER + R
+aur = []
 
 [fonts]
 families = ["Bebas Neue", "Montserrat", "JetBrains Mono"]
